@@ -21,15 +21,27 @@
 .sheet td .print-value{max-width:100%;overflow-wrap:anywhere;word-break:break-word;white-space:pre-wrap}
 @media print{.sheet td{overflow:visible;height:auto!important}.sheet td .print-value{height:auto!important;min-height:24px}.sheet tr{break-inside:avoid;page-break-inside:avoid}}
 
-.import-panel{display:none;background:#fff;border:2px solid #28533d;margin:8px;padding:14px;border-radius:8px;max-width:950px}.import-panel.open{display:block}.import-panel textarea{width:100%;min-height:110px;font:14px monospace}.import-panel button{padding:9px;margin:5px 4px 5px 0}.import-panel .status{font-size:13px}.import-panel .review{max-height:320px;overflow:auto}.import-panel table{border-collapse:collapse;width:100%;font-size:12px}.import-panel td,.import-panel th{border:1px solid #aaa;padding:4px}.import-panel input{width:100%;min-width:80px;font-size:14px;padding:5px}.import-panel img{max-width:260px;max-height:170px;object-fit:contain}@media print{.import-panel{display:none!important}}
+
 
 /* Redzone: compact, readable two-line summary with no overlap */
 .sheet th:nth-child(19){font-size:8px}
 .sheet td:nth-child(19){overflow:hidden}
 .sheet td:nth-child(19) input{font-size:9px!important;letter-spacing:-.3px;padding:1px!important;min-width:0;text-overflow:clip}
 @media print{.sheet td:nth-child(19) .print-value{font-size:6.5px!important;line-height:1.2;white-space:normal;overflow-wrap:anywhere;word-break:normal;padding:1px!important}}
-</style></head><body><div class="toolbar"><strong>Editable SIC Sheet · v10 A4 + Packs Produced Run Totals</strong><span class="hint">Tap any box to edit · Saves automatically</span><button onclick="showImport('line')">📷 Scan Line Plan</button><button onclick="showImport('order')">📷 Order Sheet</button><button onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><section class="import-panel" id="importPanel"><strong id="importTitle">Import photo</strong><p class="status" id="importStatus">Select a clear photo. OCR requires an internet connection the first time.</p><input type="file" id="importPhoto" accept="image/*" onchange="readPhoto(event)"><div><img id="importPreview" alt="Selected document" style="display:none"></div><p><strong>Text recognised (editable)</strong></p><textarea id="importText" placeholder="OCR text appears here. You can also paste or type the plan text yourself."></textarea><div><button onclick="parseImport()">Find products</button><button onclick="closeImport()">Close</button></div><div class="review" id="importReview"></div><p class="status">Review each field before applying. Existing SIC rows are not overwritten automatically. Line plan columns are matched by their positions. Check all extracted values. Planned times and trays are never copied into actual production fields.</p></section><div class="mobile-tip">Swipe sideways to see the whole paper sheet. Zoom out to see the full layout.</div><div class="scroll"><main class="paper"><div class="top"><div class="site">Bo'ness<br><small>CCP9</small></div><div class="heading">Record for:<br>Despatch Short Interval Control (SIC) Sheet</div><div class="logo">Greencore®</div></div><div class="instructions">Reason for Issue: New document issued<br>Purpose: Real-time monitoring of production output, order fulfilment, mass balance the total number of packs against LOMA and OAL, and waste<br>Responsibility: Despatch Team leaders are responsible for completing the SIC sheet. Despatch Managers are responsible for reviewing performance and ensuring corrective actions are completed.<br>Procedure: Complete the SIC sheet at the defined monitoring intervals throughout the shift.<br>Retrieve the total number of reads from the Olympus system by running the Statistics Report after the production run has been completed and record the result in the OAL Total Reads field. Compare the results against packs produced and<br>identify any deviations, losses, quality failures, or delays.<br>Team Leader or Manager to verify the information and sign the sheet.<br>Corrective Action: If the number of OAL reads is lower than the number of packs produced, Despatch Manager must be informed, and issue investigated</div><section class="meta"><label class="date">Date: <input data-key="date" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" class="date-field"></label><label class="dell">Dell: <input data-key="dell"></label><label class="shift">Shift: <input data-key="shift"></label><label class="leader">Team Leader: <input data-key="leader"></label><label class="manager">Section Leader/ Manager: <input data-key="manager"></label><label class="line">Line: <input data-key="line"></label></section><label class="comment">Actions/Comments: <input data-key="actions"></label><table class="sheet"><thead><tr id="head"></tr></thead><tbody id="rows"></tbody></table><div class="footer"><span>Greencore Bo'ness</span><span>Version <input data-key="version"></span><span>Page <input data-key="page" value="1"></span></div></main></div><script>
-const headers=['Start Time','Finish time','R-code','Product Description','Date code','Order Update (Depot)','Planned Packs','Packs Produced','LOMA packs total','OAL total reads','Despatch Waste','Dell Rejects','Dell Burst packs','Samples/ Temp packs','Units per tray','Total trays','Extra Loose packs','Extra trays','Redzone'];
+
+/* Redzone displays separate pack and waste figures on two lines. */
+.sheet td:nth-child(19) textarea{display:block;width:100%;min-width:0;box-sizing:border-box;resize:none;overflow:hidden;border:0;background:transparent;text-align:left;font-family:Arial,sans-serif;font-size:9px;line-height:1.15;padding:1px 2px;white-space:pre-wrap;height:29px;min-height:29px}
+@media print{.sheet td:nth-child(19) textarea{display:none!important}.sheet td:nth-child(19) .print-value{white-space:pre-wrap!important;text-align:left!important;font-size:7px!important;line-height:1.2!important}}
+
+/* Tap the small circle to mark a checked Samples or Dell Rejects count. */
+.sheet td.circle-cell{position:relative}
+.sheet td.circle-cell input{padding-right:13px}
+.circle-toggle{position:absolute;right:1px;top:1px;z-index:2;width:16px;height:16px;padding:0;border:1px solid #777;border-radius:50%;background:#fff;color:#333;font-size:12px;line-height:13px;cursor:pointer;touch-action:manipulation}
+.sheet td.circle-cell.circled input{outline:2px solid #c52222;outline-offset:-5px;border-radius:50%;font-weight:700}
+.sheet td.circle-cell.circled .circle-toggle{background:#c52222;color:white;border-color:#c52222}
+@media print{.circle-toggle{display:none!important}.sheet td.circle-cell.circled input{outline:2px solid #c52222!important;outline-offset:-5px!important;border-radius:50%!important}}
+</style></head><body><div class="toolbar"><strong>SIC Sheet · 1.1 beta by Ross Hutton</strong><span class="hint">Tap any box to edit · Saves automatically</span><button onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><div class="mobile-tip">Swipe sideways to see the whole paper sheet. Zoom out to see the full layout.</div><div class="scroll"><main class="paper"><div class="top"><div class="site">Bo'ness<br><small>CCP9</small></div><div class="heading">Record for:<br>Despatch Short Interval Control (SIC) Sheet</div><div class="logo">Greencore®</div></div><div class="instructions">Reason for Issue: New document issued<br>Purpose: Real-time monitoring of production output, order fulfilment, mass balance the total number of packs against LOMA and OAL, and waste<br>Responsibility: Despatch Team leaders are responsible for completing the SIC sheet. Despatch Managers are responsible for reviewing performance and ensuring corrective actions are completed.<br>Procedure: Complete the SIC sheet at the defined monitoring intervals throughout the shift.<br>Retrieve the total number of reads from the Olympus system by running the Statistics Report after the production run has been completed and record the result in the OAL Total Reads field. Compare the results against packs produced and<br>identify any deviations, losses, quality failures, or delays.<br>Team Leader or Manager to verify the information and sign the sheet.<br>Corrective Action: If the number of OAL reads is lower than the number of packs produced, Despatch Manager must be informed, and issue investigated</div><section class="meta"><label class="date">Date: <input data-key="date" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" class="date-field"></label><label class="dell">Dell: <input data-key="dell"></label><label class="shift">Shift: <input data-key="shift"></label><label class="leader">Team Leader: <input data-key="leader"></label><label class="manager">Section Leader/ Manager: <input data-key="manager"></label><label class="line">Line: <input data-key="line"></label></section><label class="comment">Actions/Comments: <input data-key="actions"></label><table class="sheet"><thead><tr id="head"></tr></thead><tbody id="rows"></tbody></table><div class="footer"><span>Greencore Bo'ness</span><span>Version <input data-key="version" value="1.1 beta by Ross Hutton"></span><span>Page <input data-key="page" value="1"></span></div></main></div><script>
+const headers=['Start Time','Finish time','R-code','Product Description','Date code','Order Update','Planned Packs','Packs Produced','LOMA packs total','OAL total reads','Despatch Waste','Dell Rejects','Dell Burst packs','Samples/ Temp packs','Units per tray','Total trays','Extra Loose packs','Extra trays','Redzone'];
 const PRODUCT_LOOKUP={
  'R5538':'OC Honey Roast Salmon Pasta Salad (Small)',
  'R5483':'MS Honey Roast Salmon Pasta',
@@ -280,13 +292,13 @@ function fillProduct(tr){
    if(!product.value.trim()||product.value===previous){product.value=PRODUCT_LOOKUP[normalized];product.dataset.lookupValue=product.value;}
  }
 }
-const head=document.getElementById('head'),body=document.getElementById('rows');headers.forEach(h=>{let th=document.createElement('th');th.textContent=h;head.append(th)});const KEY='greencore-sic-paper-v5';let data={};try{data=JSON.parse(localStorage.getItem(KEY))||{};if(!Object.keys(data).length){const old=JSON.parse(localStorage.getItem('greencore-sic-paper-v3'))||{};data={...old};for(const k of Object.keys(old)){const m=/^r(\d+)c(\d+)$/.exec(k);if(m){const col=Number(m[2]);if(col===16)delete data[k];else if(col>16){delete data[k];data['r'+m[1]+'c'+(col-1)]=old[k]}}}}}catch(e){}function save(){document.querySelectorAll('[data-key]').forEach(el=>data[el.dataset.key]=el.value);localStorage.setItem(KEY,JSON.stringify(data))}function addRow(){let i=body.children.length;let tr=document.createElement('tr');headers.forEach((h,j)=>{let td=document.createElement('td'),inp=document.createElement('input');inp.setAttribute('aria-label',h+' row '+(i+1));inp.dataset.key='r'+i+'c'+j;inp.value=data[inp.dataset.key]||'';if(j===0||j===1){inp.inputMode='numeric';inp.maxLength=5;inp.placeholder='00:00';inp.addEventListener('input',()=>{inp.value=inp.value.trim()==='='?'=':formatTime(inp.value);refreshTotals();save()})}else if(j===4){inp.inputMode='numeric';inp.maxLength=10;inp.placeholder='DD/MM/YYYY';inp.addEventListener('input',()=>{inp.value=formatDate(inp.value);save()})}else if(j===7||j===17){inp.readOnly=true;inp.tabIndex=-1;inp.title=j===7?'Units per tray × Total trays':'Extra Loose packs ÷ Units per tray';inp.className='calculated'}else{if(j===14||j===15||j===16)inp.inputMode='decimal';inp.addEventListener('input',()=>{if(j===2){
+const head=document.getElementById('head'),body=document.getElementById('rows');headers.forEach(h=>{let th=document.createElement('th');th.textContent=h;head.append(th)});const KEY='greencore-sic-paper-v5';let data={};try{data=JSON.parse(localStorage.getItem(KEY))||{};if(!Object.keys(data).length){const old=JSON.parse(localStorage.getItem('greencore-sic-paper-v3'))||{};data={...old};for(const k of Object.keys(old)){const m=/^r(\d+)c(\d+)$/.exec(k);if(m){const col=Number(m[2]);if(col===16)delete data[k];else if(col>16){delete data[k];data['r'+m[1]+'c'+(col-1)]=old[k]}}}}}catch(e){}function save(){document.querySelectorAll('[data-key]').forEach(el=>data[el.dataset.key]=el.value);localStorage.setItem(KEY,JSON.stringify(data))}function addRow(){let i=body.children.length;let tr=document.createElement('tr');headers.forEach((h,j)=>{let td=document.createElement('td'),inp=document.createElement(j===18?'textarea':'input');inp.setAttribute('aria-label',h+' row '+(i+1));inp.dataset.key='r'+i+'c'+j;inp.value=data[inp.dataset.key]||'';if(j===0||j===1){inp.inputMode='numeric';inp.maxLength=5;inp.placeholder='00:00';inp.addEventListener('input',()=>{inp.value=inp.value.trim()==='='?'=':formatTime(inp.value);refreshTotals();save()})}else if(j===4){inp.inputMode='numeric';inp.maxLength=10;inp.placeholder='DD/MM/YYYY';inp.addEventListener('input',()=>{inp.value=formatDate(inp.value);save()})}else if(j===7||j===17){inp.readOnly=true;inp.tabIndex=-1;inp.title=j===7?'Units per tray × Total trays':'Extra Loose packs ÷ Units per tray';inp.className='calculated'}else{if(j===14||j===15||j===16)inp.inputMode='decimal';inp.addEventListener('input',()=>{if(j===2){
  const productField=tr.children[3].firstChild;
  if(productField.dataset.lookupValue && productField.value===productField.dataset.lookupValue)productField.value='';
  const unitField=tr.children[14].firstChild;
  if(unitField.dataset.lookupValue && unitField.value===unitField.dataset.lookupValue)unitField.value='';
  fillProduct(tr);fillProductDefaults(tr);
-}if(j===14||j===15||j===16)calculate(tr);refreshTotals();save()})}td.append(inp);if(j===5){td.classList.add('order-cell');let toggle=document.createElement('button');toggle.type='button';toggle.className='order-toggle';toggle.textContent='✓';toggle.title='Toggle green order update highlight';toggle.setAttribute('aria-label','Mark order updated green');toggle.addEventListener('click',()=>{data['orderGreen'+i]=!data['orderGreen'+i];refreshHighlights();save()});td.append(toggle)}tr.append(td)});body.append(tr);fillProduct(tr);fillProductDefaults(tr);calculate(tr);data.rowCount=body.children.length;refreshTotals();save()}for(let i=0;i<Math.max(9,data.rowCount||9);i++)addRow();document.querySelectorAll('.meta input,.comment input,.footer input').forEach(el=>{if(data[el.dataset.key]!==undefined)el.value=data[el.dataset.key];if(el.classList.contains('date-field'))el.addEventListener('input',()=>{el.value=formatDate(el.value);save()});else el.addEventListener('input',save)});function formatTime(v){if(v.trim()==='=')return '=';let d=v.replace(/\D/g,'').slice(0,4);return d.length>2?d.slice(0,2)+':'+d.slice(2):d}function formatDate(v){let d=v.replace(/\D/g,'').slice(0,8);return [d.slice(0,2),d.slice(2,4),d.slice(4,8)].filter(Boolean).join('/')}function calculate(tr){let a=Number(tr.children[14]?.firstChild.value),b=Number(tr.children[15]?.firstChild.value),out=tr.children[7]?.firstChild;if(out)out.value=(tr.children[14].firstChild.value!==''&&tr.children[15].firstChild.value!=='')?String(a*b):'';const extra=tr.children[16]?.firstChild.value.trim(),tray=tr.children[14]?.firstChild.value.trim(),extraOut=tr.children[17]?.firstChild;if(extraOut){const qty=Number(extra),units=Number(tray);extraOut.value=extra!==''&&tray!==''&&Number.isFinite(qty)&&Number.isFinite(units)&&units>0&&qty>=0?String(Number((qty/units).toFixed(3))):''}}function refreshHighlights(){
+}if(j===14||j===15||j===16)calculate(tr);refreshTotals();save()})}td.append(inp);if(j===5){td.classList.add('order-cell');let toggle=document.createElement('button');toggle.type='button';toggle.className='order-toggle';toggle.textContent='✓';toggle.title='Toggle green order update highlight';toggle.setAttribute('aria-label','Mark order updated green');toggle.addEventListener('click',()=>{data['orderGreen'+i]=!data['orderGreen'+i];refreshHighlights();save()});td.append(toggle)}if(j===11||j===13){td.classList.add('circle-cell');td.classList.toggle('circled',!!data['circled'+i+'c'+j]);let circle=document.createElement('button');circle.type='button';circle.className='circle-toggle';circle.textContent=data['circled'+i+'c'+j]?'✓':'○';circle.title='Tap to circle or uncircle this count';circle.setAttribute('aria-label','Circle '+h+' row '+(i+1));circle.setAttribute('aria-pressed',String(!!data['circled'+i+'c'+j]));circle.addEventListener('click',()=>{const k='circled'+i+'c'+j;data[k]=!data[k];td.classList.toggle('circled',data[k]);circle.textContent=data[k]?'✓':'○';circle.setAttribute('aria-pressed',String(data[k]));save()});td.append(circle)}tr.append(td)});body.append(tr);fillProduct(tr);fillProductDefaults(tr);calculate(tr);data.rowCount=body.children.length;refreshTotals();save()}for(let i=0;i<Math.max(9,data.rowCount||9);i++)addRow();document.querySelectorAll('.meta input,.comment input,.footer input').forEach(el=>{if(data[el.dataset.key]!==undefined)el.value=data[el.dataset.key];if(el.classList.contains('date-field'))el.addEventListener('input',()=>{el.value=formatDate(el.value);save()});else el.addEventListener('input',save)});document.querySelector('[data-key="version"]').value='1.1 beta by Ross Hutton';save();function formatTime(v){if(v.trim()==='=')return '=';let d=v.replace(/\D/g,'').slice(0,4);return d.length>2?d.slice(0,2)+':'+d.slice(2):d}function formatDate(v){let d=v.replace(/\D/g,'').slice(0,8);return [d.slice(0,2),d.slice(2,4),d.slice(4,8)].filter(Boolean).join('/')}function calculate(tr){let a=Number(tr.children[14]?.firstChild.value),b=Number(tr.children[15]?.firstChild.value),out=tr.children[7]?.firstChild;if(out)out.value=(tr.children[14].firstChild.value!==''&&tr.children[15].firstChild.value!=='')?String(a*b):'';const extra=tr.children[16]?.firstChild.value.trim(),tray=tr.children[14]?.firstChild.value.trim(),extraOut=tr.children[17]?.firstChild;if(extraOut){const qty=Number(extra),units=Number(tray);extraOut.value=extra!==''&&tray!==''&&Number.isFinite(qty)&&Number.isFinite(units)&&units>0&&qty>=0?String(Number((qty/units).toFixed(3))):''}}function refreshHighlights(){
  for(const [i,tr] of [...body.children].entries()){
   const packs=tr.children[7].firstChild.value.trim(),oal=tr.children[9].firstChild.value.trim();
   tr.children[9].classList.toggle('oal-green',packs!==''&&oal!==''&&Number.isFinite(Number(oal))&&Number(oal)>Number(packs));
@@ -334,25 +346,10 @@ function refreshTotals(){refreshHighlights();
    waste+=Number(row.children[10].firstChild.value)||0;
   }
   const comment=trs[finishIdx].children[18].firstChild;
-  comment.value=`Packs: ${total} | Waste: ${waste}`;
+  comment.value=`Packs ${total}\nWaste ${waste}`;
   comment.dataset.autoSummary='1';
   comment.title=comment.value;
-  // A completed order requires a valid finish time AND enough actual packs
-  // to cover the planned packs for the same run. Waste is never counted.
-  const planned=group.reduce((sum,idx)=>sum+(Number(trs[idx].children[6].firstChild.value)||0),0);
-  if(planned>0 && total>=planned){
-   const last=trs[finishIdx];
-   const order=last.children[5].firstChild;
-   const name=group.map(idx=>trs[idx].children[3].firstChild.value.trim()).find(v=>v&&v!=='=')||'';
-   const isOC=/\bOC\b/i.test(name);
-   const totalTrays=group.reduce((sum,idx)=>sum+(Number(trs[idx].children[15].firstChild.value)||0),0);
-   const label=isOC?`${totalTrays} OC`:null;
-   // Preserve manually entered order-update notes.
-   if(isOC && !order.value.trim()){
-    order.value=label;order.dataset.autoOrder='1';order.dataset.autoOrderText=label;
-    data['orderGreen'+finishIdx]=true;
-   }
-  }
+
  }
  refreshHighlights();
  if(typeof fitAllFields==='function')fitAllFields();
@@ -362,7 +359,7 @@ refreshTotals();
 
 function syncPrintValues(){
  document.querySelectorAll('.print-value').forEach(el=>el.remove());
- document.querySelectorAll('.paper input').forEach(inp=>{
+ document.querySelectorAll('.paper input, .paper textarea').forEach(inp=>{
    const span=document.createElement('span');
    span.className='print-value';
    span.textContent=inp.value||' ';
@@ -414,62 +411,5 @@ function printSheet(){
   }else alert('Open this page in Safari, then choose Share > Print.');
 }
 
-// Photo imports: OCR is performed locally in the browser by Tesseract.js loaded on demand.
-// The library and language data are downloaded from a CDN; no server-side photo upload is performed by this app.
-let importKind='line', importCandidates=[];
-function showImport(kind){importKind=kind;document.getElementById('importTitle').textContent=kind==='line'?'Import Line Plan':'Import Order Sheet';document.getElementById('importPanel').classList.add('open');document.getElementById('importPanel').scrollIntoView({behavior:'smooth'});}
-function closeImport(){document.getElementById('importPanel').classList.remove('open')}
-function importStatus(msg){document.getElementById('importStatus').textContent=msg}
-function loadOCR(){return new Promise((resolve,reject)=>{if(window.Tesseract)return resolve();const el=document.createElement('script');el.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';el.onload=resolve;el.onerror=()=>reject(Error('OCR could not load. Connect to the internet or paste the text manually.'));document.head.appendChild(el)})}
-async function readPhoto(e){const file=e.target.files[0];if(!file)return;const url=URL.createObjectURL(file);const img=document.getElementById('importPreview');img.src=url;img.style.display='block';importStatus('Reading photo… this may take a minute on iPhone.');try{await loadOCR();const worker=await Tesseract.createWorker('eng');const result=await worker.recognize(file, {}, {tsv:true}); window.linePlanOCR=result.data;await worker.terminate();document.getElementById('importText').value=result.data.text||'';importStatus('Photo scanned. Review the matched table rows below.');parseImport()}catch(err){importStatus(err.message+' You can type or paste the details into the text box.')}finally{URL.revokeObjectURL(url)}}
-function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-// Reads the *table geometry* of the D1 Assembly Work To List, rather than treating it as raw prose.
-function parseImport(){
- const raw=document.getElementById('importText').value;
- importCandidates=[];
- const ocr=window.linePlanOCR;
- if(importKind==='line' && ocr?.tsv){
-  const rows=ocr.tsv.split(/\r?\n/).slice(1).map(s=>s.split('\t')).filter(a=>a.length>=12&&Number(a[11])>15&&a[11].trim());
-  const words=rows.map(a=>({text:a.slice(11).join(' ').trim(),x:+a[6],y:+a[7],w:+a[8],h:+a[9]}));
-  const codes=words.filter(w=>/^R\s*\d{4,6}$/i.test(w.text.replace(/\s/g,'')));
-  const minX=Math.min(...words.map(w=>w.x)), maxX=Math.max(...words.map(w=>w.x+w.w));
-  const width=Math.max(1,maxX-minX);
-  // Column positions are calibrated to the sample D1 NewTech printout.
-  // The OCR's bounding boxes allow each row to be read horizontally.
-  const bounds=[.00,.105,.22,.31,.35,.39,.46,.53,.60,.67,.73,.78,.83,.88,.94,1.01];
-  const columns=['part','notes','product','type','trays','packs','actual','start','end','actualstart','actualend','dispatch','useby','speed','packtray','crew'];
-  const planDate=(raw.match(/Prod\s*Date\s*:?\s*(\d{2}\/\d{2}\/\d{4})/i)||[])[1]||'';
-  const sorted=codes.sort((a,b)=>a.y-b.y);
-  for(let i=0;i<sorted.length;i++){
-   const anchor=sorted[i], cy=anchor.y+anchor.h/2;
-   const next=sorted[i+1];
-   const half=Math.max(9,Math.min(26,(next?next.y-anchor.y:30)*.42));
-   const band=words.filter(w=>Math.abs(w.y+w.h/2-cy)<half);
-   const grouped=Object.fromEntries(columns.map(k=>[k,[]]));
-   for(const w of band){const ratio=(w.x+w.w/2-minX)/width;let j=bounds.findIndex((v,k)=>k<bounds.length-1&&ratio>=v&&ratio<bounds[k+1]);if(j>=0&&columns[j])grouped[columns[j]].push(w)}
-   const get=k=>grouped[k].sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ').trim();
-   const code='R'+anchor.text.replace(/\D/g,'');
-   const numeric=t=>(String(t).match(/^\d{1,6}$/)||[])[0]||'';
-   const desc=get('product')||PRODUCT_LOOKUP[code]||'';
-   const planned=numeric(get('packs'));
-   const units=numeric(get('packtray'));
-   const useBy=(get('useby').match(/\d{2}\/\d{2}\/\d{4}/)||[])[0]||'';
-   importCandidates.push({code,description:desc,date:useBy,planned,units,samples:'',line:i});
-  }
-  if(importCandidates.length){renderImportReview();importStatus(importCandidates.length+' rows detected from the photographed table. Review every value, especially pack quantities and date codes. Start and Finish Times are always left blank.');return}
- }
- // Manual OCR/pasted-text fallback; no unverified numerical guesses.
- const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- for(let i=0;i<lines.length;i++){
-  const m=lines[i].match(/\bR\s*[-:]?\s*(\d{4,6})\b/i);if(!m)continue;
-  const code='R'+m[1];const tail=lines[i].slice(m.index+m[0].length).trim();
-  const description=PRODUCT_LOOKUP[code]||tail.replace(/^[-: ]+/,'');
-  importCandidates.push({code,description,date:'',planned:'',units:'',samples:'',line:i});
- }
- if(!importCandidates.length){importStatus('Could not identify R-code rows. Try a closer, well-lit photo taken directly above the page.');document.getElementById('importReview').innerHTML='';return}
- renderImportReview();importStatus(importCandidates.length+' R codes found. OCR could not reliably match the columns; check and enter quantities manually.');
-}
-function renderImportReview(){const cols=['code','description','date','planned','units','samples'];document.getElementById('importReview').innerHTML='<table><thead><tr>'+['R code','Product','Date code','Planned packs','Units/tray','Samples'].map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+importCandidates.map((r,i)=>'<tr>'+cols.map(k=>'<td><input aria-label="'+k+'" data-import-row="'+i+'" data-import-col="'+k+'" value="'+esc(r[k])+'"></td>').join('')+'</tr>').join('')+'</tbody></table><button class="primary" onclick="applyImport()">Add reviewed rows to SIC</button>';}
-function applyImport(){document.querySelectorAll('[data-import-row]').forEach(el=>{importCandidates[+el.dataset.importRow][el.dataset.importCol]=el.value.trim()});let count=0;for(const item of importCandidates){if(!/^R?\d{4,6}$/i.test(item.code))continue;const tr= [...body.children].find(r=>!r.children[2].firstChild.value.trim()&&!r.children[3].firstChild.value.trim())||(addRow(),body.lastElementChild);const put=(j,value)=>{if(value!==''&&value!=null)tr.children[j].firstChild.value=value};put(2,item.code.toUpperCase().replace(/^R?/,'R'));fillProduct(tr);if(item.description)put(3,item.description);if(item.date)put(4,item.date);if(item.planned)put(6,item.planned);if(item.units)put(14,item.units);if(item.samples)put(13,item.samples);fillProductDefaults(tr);calculate(tr);count++}refreshTotals();save();fitAllFields();importStatus(count+' row(s) imported. Please verify against the original photo.');closeImport()}
 function exportData(){save();let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='SIC-sheet-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}function restoreData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{data=JSON.parse(r.result);localStorage.setItem(KEY,JSON.stringify(data));location.reload()}catch(e){alert('Invalid backup file')}};r.readAsText(f)}
 if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});</script></body></html>
