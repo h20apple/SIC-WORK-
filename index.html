@@ -22,24 +22,235 @@
 @media print{.sheet td{overflow:visible;height:auto!important}.sheet td .print-value{height:auto!important;min-height:24px}.sheet tr{break-inside:avoid;page-break-inside:avoid}}
 
 .import-panel{display:none;background:#fff;border:2px solid #28533d;margin:8px;padding:14px;border-radius:8px;max-width:950px}.import-panel.open{display:block}.import-panel textarea{width:100%;min-height:110px;font:14px monospace}.import-panel button{padding:9px;margin:5px 4px 5px 0}.import-panel .status{font-size:13px}.import-panel .review{max-height:320px;overflow:auto}.import-panel table{border-collapse:collapse;width:100%;font-size:12px}.import-panel td,.import-panel th{border:1px solid #aaa;padding:4px}.import-panel input{width:100%;min-width:80px;font-size:14px;padding:5px}.import-panel img{max-width:260px;max-height:170px;object-fit:contain}@media print{.import-panel{display:none!important}}
-</style></head><body><div class="toolbar"><strong>Editable SIC Sheet · v10 A4 + Packs Produced Run Totals</strong><span class="hint">Tap any box to edit · Saves automatically</span><button onclick="showImport('line')">📷 Line Plan</button><button onclick="showImport('order')">📷 Order Sheet</button><button onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><section class="import-panel" id="importPanel"><strong id="importTitle">Import photo</strong><p class="status" id="importStatus">Select a clear photo. OCR requires an internet connection the first time.</p><input type="file" id="importPhoto" accept="image/*" onchange="readPhoto(event)"><div><img id="importPreview" alt="Selected document" style="display:none"></div><p><strong>Text recognised (editable)</strong></p><textarea id="importText" placeholder="OCR text appears here. You can also paste or type the plan text yourself."></textarea><div><button onclick="parseImport()">Find products</button><button onclick="closeImport()">Close</button></div><div class="review" id="importReview"></div><p class="status">Review each field before applying. Existing SIC rows are not overwritten automatically. Order quantities go to Planned Packs, never Packs Produced.</p></section><div class="mobile-tip">Swipe sideways to see the whole paper sheet. Zoom out to see the full layout.</div><div class="scroll"><main class="paper"><div class="top"><div class="site">Bo'ness<br><small>CCP9</small></div><div class="heading">Record for:<br>Despatch Short Interval Control (SIC) Sheet</div><div class="logo">Greencore®</div></div><div class="instructions">Reason for Issue: New document issued<br>Purpose: Real-time monitoring of production output, order fulfilment, mass balance the total number of packs against LOMA and OAL, and waste<br>Responsibility: Despatch Team leaders are responsible for completing the SIC sheet. Despatch Managers are responsible for reviewing performance and ensuring corrective actions are completed.<br>Procedure: Complete the SIC sheet at the defined monitoring intervals throughout the shift.<br>Retrieve the total number of reads from the Olympus system by running the Statistics Report after the production run has been completed and record the result in the OAL Total Reads field. Compare the results against packs produced and<br>identify any deviations, losses, quality failures, or delays.<br>Team Leader or Manager to verify the information and sign the sheet.<br>Corrective Action: If the number of OAL reads is lower than the number of packs produced, Despatch Manager must be informed, and issue investigated</div><section class="meta"><label class="date">Date: <input data-key="date" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" class="date-field"></label><label class="dell">Dell: <input data-key="dell"></label><label class="shift">Shift: <input data-key="shift"></label><label class="leader">Team Leader: <input data-key="leader"></label><label class="manager">Section Leader/ Manager: <input data-key="manager"></label><label class="line">Line: <input data-key="line"></label></section><label class="comment">Actions/Comments: <input data-key="actions"></label><table class="sheet"><thead><tr id="head"></tr></thead><tbody id="rows"></tbody></table><div class="footer"><span>Greencore Bo'ness</span><span>Version <input data-key="version"></span><span>Page <input data-key="page" value="1"></span></div></main></div><script>
+</style></head><body><div class="toolbar"><strong>Editable SIC Sheet · v10 A4 + Packs Produced Run Totals</strong><span class="hint">Tap any box to edit · Saves automatically</span><button onclick="showImport('line')">📷 Scan Line Plan</button><button onclick="showImport('order')">📷 Order Sheet</button><button onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><section class="import-panel" id="importPanel"><strong id="importTitle">Import photo</strong><p class="status" id="importStatus">Select a clear photo. OCR requires an internet connection the first time.</p><input type="file" id="importPhoto" accept="image/*" onchange="readPhoto(event)"><div><img id="importPreview" alt="Selected document" style="display:none"></div><p><strong>Text recognised (editable)</strong></p><textarea id="importText" placeholder="OCR text appears here. You can also paste or type the plan text yourself."></textarea><div><button onclick="parseImport()">Find products</button><button onclick="closeImport()">Close</button></div><div class="review" id="importReview"></div><p class="status">Review each field before applying. Existing SIC rows are not overwritten automatically. Line plan columns are matched by their positions. Check all extracted values. Planned times and trays are never copied into actual production fields.</p></section><div class="mobile-tip">Swipe sideways to see the whole paper sheet. Zoom out to see the full layout.</div><div class="scroll"><main class="paper"><div class="top"><div class="site">Bo'ness<br><small>CCP9</small></div><div class="heading">Record for:<br>Despatch Short Interval Control (SIC) Sheet</div><div class="logo">Greencore®</div></div><div class="instructions">Reason for Issue: New document issued<br>Purpose: Real-time monitoring of production output, order fulfilment, mass balance the total number of packs against LOMA and OAL, and waste<br>Responsibility: Despatch Team leaders are responsible for completing the SIC sheet. Despatch Managers are responsible for reviewing performance and ensuring corrective actions are completed.<br>Procedure: Complete the SIC sheet at the defined monitoring intervals throughout the shift.<br>Retrieve the total number of reads from the Olympus system by running the Statistics Report after the production run has been completed and record the result in the OAL Total Reads field. Compare the results against packs produced and<br>identify any deviations, losses, quality failures, or delays.<br>Team Leader or Manager to verify the information and sign the sheet.<br>Corrective Action: If the number of OAL reads is lower than the number of packs produced, Despatch Manager must be informed, and issue investigated</div><section class="meta"><label class="date">Date: <input data-key="date" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" class="date-field"></label><label class="dell">Dell: <input data-key="dell"></label><label class="shift">Shift: <input data-key="shift"></label><label class="leader">Team Leader: <input data-key="leader"></label><label class="manager">Section Leader/ Manager: <input data-key="manager"></label><label class="line">Line: <input data-key="line"></label></section><label class="comment">Actions/Comments: <input data-key="actions"></label><table class="sheet"><thead><tr id="head"></tr></thead><tbody id="rows"></tbody></table><div class="footer"><span>Greencore Bo'ness</span><span>Version <input data-key="version"></span><span>Page <input data-key="page" value="1"></span></div></main></div><script>
 const headers=['Start Time','Finish time','R-code','Product Description','Date code','Order Update (Depot)','Planned Packs','Packs Produced','LOMA packs total','OAL total reads','Despatch Waste','Dell Rejects','Dell Burst packs','Samples/ Temp packs','Units per tray','Total trays','Extra Loose packs','Extra trays','Comments'];
 const PRODUCT_LOOKUP={
  'R5538':'OC Honey Roast Salmon Pasta Salad (Small)',
- 'R5483':'MS Honey Roast Salmon Pasta Bowl',
+ 'R5483':'MS Honey Roast Salmon Pasta',
  'R5537':'OC King Prawn Tomato & Basil Pasta Salad (Large)',
- 'R5482':'MS King Prawn Tomato & Basil Pasta Salad (Large)',
+ 'R5482':'MS King Prawn Tomato & Basil Pasta',
  'R5746':'MS ND Chipotle Peppers & Jalapeno Houmous',
- 'R5739':'MS Honey & Mustard Pasta Salad (Large)',
- 'R5738':'MS Chicken Bacon Sweetcorn Pasta Salad (Large)',
+ 'R5739':'MS Honey & Must Chicken P Bowl',
+ 'R5738':'MS Chicken Bacon Sweetcorn Pasta Salad',
  'R5533':'MS Chicken Bacon Sweetcorn Pasta Salad (Large)',
- 'R5485':'MS Feta Cheese & Roasted Tomato Pasta Salad (Large)',
- 'R5539':'OC Feta Cheese & Roasted Tomato Pasta Salad (Large)'
+ 'R5485':'MS Feta & Sunblush Tomato Pasta Large',
+ 'R5539':'OC Feta Cheese & Roasted Tomato Pasta Salad (Large)',
+ 'R5736':'MS Cafe Naked Slaw 6s',
+ 'R5509':'MS Tuna & Sweetcorn Pasta Bowl',
+ 'R5364':'MS Smoked Salmon & Potato Salad',
+ 'R5673':'MS Beetroot & Feta 23 4s',
+ 'R5484':'MS Pesto Chicken Pasta',
+ 'R6044':'OC Orzo & Roasted Tomatoes',
+ 'R5735':'OC Garlic Baby Potatoes',
+ 'R5603':'OC Buttery Herb Baby Potatoes',
+ 'R5542':'OC Tuna Sweetcorn Pasta Salad (Large)',
+ 'R5742':'OC Super wholegrain Harissa Carrot',
+ 'R5696':'OC Creamy Greek Dip',
+ 'R5594':'OC EPD Roast Veg Couscous',
+ 'R5780':'OC Green Pesto',
+ 'R5586':'OC Labneh Yogurt dip with a herb dressing',
+ 'R5587':'OC SPALDING GG EPD',
+ 'R5467':'OC Buffalo Chicken Dip',
+ 'R5053':'OC Moroccan Style Fruity Couscous',
+ 'R5514':'OC Large Moroccan Style Fruity Couscous',
+ 'R5759':'OC Roasted Red Pepper & Chilli Pesto',
+ 'R5592':'OC Collection Tzatziki 170g',
+ 'R5728':'OC Roasted Pepper & Whipped Pecorino',
+ 'R5752':'OC Bountiful Beans',
+ 'R5753':'OC Rainbow Rice',
+ 'R5734':'OC Grains & Greens',
+ 'R5721':'OC Mexican Chicken Shake-a-grains salad',
+ 'R5425':'OC Italian Pasta & Spinach Salad (Large Pack)',
+ 'R5164':'OC Pasta, Spinach & Pine',
+ 'R5708':'OC Small Tabbouleh',
+ 'R5481':'OC Avocado, Kale & Grains',
+ 'R5173':'OC British Potato, Pea & Mint',
+ 'R5707':'OC British Potato, Pea & Mint',
+ 'R5600':'OC EPD 4 Bean Salad',
+ 'R5630':'OC Pesto & Slow Roasted Tomatoes Pasta Bowl',
+ 'R5541':'OC Honey & Mustard Pasta Salad (Large)',
+ 'R5681':'OC FETA & BEETROOT',
+ 'R5535':'OC Chicken Tomato Basil Pasta Salad (Large)',
+ 'R5543':'OC Chicken Bacon Sweetcorn Pasta Salad (Large)',
+ 'R5715':'OC Beetroot, Carrot & Whipped Goats Cheese',
+ 'R5590':'OC Asian Edamame',
+ 'R5424':'OC Greek Salad',
+ 'R5536':'OC Pesto Chicken Pasta Salad with Sundried Tomatoes',
+ 'R5434':'OC Hot Smoked Salmon & New Potato Salad',
+ 'R5700':'OC Mexican Chicken Pasta Salad',
+ 'R5559':'OC Herby Feta Dip',
+ 'R5697':'OC Edamamole - Edamame and Butterbean Crush',
+ 'R5593':'OC Collections Alvar Dip 170g',
+ 'R5558':'MS GOATS CHEESE & LENTIL SLD',
+ 'R5764':'MS Super wholegrain Harissa Carrot',
+ 'R5614':'MS Orzo & Slow Roasted Tomato',
+ 'R5751':'MS Garlic Baby Potatoes',
+ 'R5783':'MS Garlic Baby Potatoes',
+ 'R5602':'MS Buttery Herb Baby Potatoes',
+ 'R5732':'MS Big Dill Pot',
+ 'R5572':'MS Roast Veg Couscous',
+ 'R5463':'M&S Moroccan Style Fruity Cous Cous',
+ 'R5686':'M&S Moroccan Style Fruity Cous Cous ROI',
+ 'R4923':'MS Moroccan Style Couscous',
+ 'R5609':'MS Moroccan Style Couscous ROI',
+ 'R5613':'MS Large Moroccan Couscous',
+ 'R5725':'MS Roasted Pepper & Whipped Pecorino',
+ 'R5748':'MS Bountiful Beans',
+ 'R5781':'MS Bountiful Beans',
+ 'R5749':'MS Rainbow Rice',
+ 'R5782':'MS Rainbow Rice',
+ 'R5731':'MS Grains & Greens',
+ 'R5717':'MS Mexican Chicken Shake-a-grains salad',
+ 'R5744':'MS Mexican Chicken Shake-a-grains ROI',
+ 'R5607':'MS Pesto & Slow Roasted Tomatoes Pasta Bowl',
+ 'R4938':'MS Pasta, Spinach & Pine',
+ 'R5608':'MS SPINACH & PINENUT ROI',
+ 'R5611':'MS Large Italian Pasta Spinach PN',
+ 'R5612':'MS Large Italian Pasta Spinach PN ROI',
+ 'R5571':'MS 4 Bean Salad',
+ 'R5573':'MS Beetroot, Carrot & Whipped Goats Cheese',
+ 'R5675':'MS Asian Edamame',
+ 'R5458':'MS British Potato Pea & Mint Salad',
+ 'R5683':'MS British Potato Pea & Mint Salad',
+ 'R4918':'M&S Avocado Kale & Grains Salad',
+ 'R5648':'MS Avocado Kale & Grains',
+ 'R5230':'MS Tabbouleh Salad',
+ 'R5553':'MS Tabbouleh Salad',
+ 'R5459':'MS Greek Salad 8’S',
+ 'R5460':'MS Greek Salad 4’S',
+ 'R5534':'MS Chicken Tomato Basil Pasta Salad (Large)',
+ 'R5703':'ROI MS Chicken Tomato Basil Pasta Salad (Large)',
+ 'R5474':'MS Chicken Tomato Basil Pasta Salad (Large)',
+ 'R5741':'MS Honey & Must Chicken P Bowl ROI',
+ 'R5740':'MS Chicken Bacon Sweetcorn Pasta Salad ROI',
+ 'R5772':'MS Mexican Chicken Pasta Salad',
+ 'R5771':'MS Mexican Chicken Pasta Salad Export',
+ 'R5448':'Herby Feta Dip 170g',
+ 'R5695':'MS Edamamole - Edamame and Butterbean Crush',
+ 'R5807':'MS Edamame and Butterbean Crush',
+ 'R5694':'MS Creamy Greek Dip',
+ 'R5806':'MS Creamy Greek Dip',
+ 'R5770':'MS Green Pesto',
+ 'R5679':'Labneh Yogurt Dip 170g',
+ 'R5579':'MS Spalding GG EPD',
+ 'R5446':'Buffalo Chicken Dip 6X170G',
+ 'R5677':'Collection Tzatziki 170g',
+ 'R5758':'MS Roasted Red Pepper & Chilli Pesto',
+ 'R5678':'Collections Ajvar Dip 170g'
 };
-// Add per-product standard values here once supplied from product photos.
-// Never use daily planned packs or produced packs as lookup values.
 const PRODUCT_DEFAULTS = {
-  // 'R5538': { unitsPerTray: 6, samples: 2 },
+ 'R5538':{unitsPerTray:6,samples:5},
+ 'R5483':{unitsPerTray:6,samples:5},
+ 'R5537':{unitsPerTray:4,samples:5},
+ 'R5482':{unitsPerTray:6,samples:5},
+ 'R5746':{unitsPerTray:6,samples:5},
+ 'R5739':{unitsPerTray:12,samples:5},
+ 'R5738':{unitsPerTray:6,samples:5},
+ 'R5533':{unitsPerTray:12,samples:5},
+ 'R5485':{unitsPerTray:5,samples:5},
+ 'R5539':{unitsPerTray:4,samples:5},
+ 'R5736':{unitsPerTray:6,samples:5},
+ 'R5509':{unitsPerTray:6,samples:5},
+ 'R5364':{unitsPerTray:4,samples:5},
+ 'R5673':{unitsPerTray:4,samples:5},
+ 'R5484':{unitsPerTray:6,samples:5},
+ 'R6044':{unitsPerTray:18,samples:5},
+ 'R5735':{unitsPerTray:6,samples:5},
+ 'R5603':{unitsPerTray:6,samples:5},
+ 'R5542':{unitsPerTray:6,samples:5},
+ 'R5742':{unitsPerTray:10,samples:5},
+ 'R5696':{unitsPerTray:16,samples:5},
+ 'R5594':{unitsPerTray:12,samples:5},
+ 'R5780':{unitsPerTray:18,samples:5},
+ 'R5586':{unitsPerTray:6,samples:5},
+ 'R5587':{unitsPerTray:6,samples:5},
+ 'R5467':{unitsPerTray:6,samples:5},
+ 'R5053':{unitsPerTray:18,samples:5},
+ 'R5514':{unitsPerTray:4,samples:5},
+ 'R5759':{unitsPerTray:6,samples:5},
+ 'R5592':{unitsPerTray:6,samples:5},
+ 'R5728':{unitsPerTray:6,samples:5},
+ 'R5752':{unitsPerTray:6,samples:5},
+ 'R5753':{unitsPerTray:6,samples:5},
+ 'R5734':{unitsPerTray:12,samples:5},
+ 'R5721':{unitsPerTray:4,samples:5},
+ 'R5425':{unitsPerTray:4,samples:5},
+ 'R5164':{unitsPerTray:18,samples:5},
+ 'R5708':{unitsPerTray:4,samples:5},
+ 'R5481':{unitsPerTray:4,samples:5},
+ 'R5173':{unitsPerTray:8,samples:5},
+ 'R5707':{unitsPerTray:4,samples:5},
+ 'R5600':{unitsPerTray:16,samples:5},
+ 'R5630':{unitsPerTray:4,samples:5},
+ 'R5541':{unitsPerTray:6,samples:5},
+ 'R5681':{unitsPerTray:4,samples:5},
+ 'R5535':{unitsPerTray:8,samples:5},
+ 'R5543':{unitsPerTray:8,samples:5},
+ 'R5715':{unitsPerTray:4,samples:5},
+ 'R5590':{unitsPerTray:6,samples:5},
+ 'R5424':{unitsPerTray:8,samples:5},
+ 'R5536':{unitsPerTray:4,samples:5},
+ 'R5434':{unitsPerTray:6,samples:5},
+ 'R5700':{unitsPerTray:4,samples:5},
+ 'R5559':{unitsPerTray:6,samples:5},
+ 'R5697':{unitsPerTray:6,samples:5},
+ 'R5593':{unitsPerTray:6,samples:5},
+ 'R5558':{unitsPerTray:6,samples:5},
+ 'R5764':{unitsPerTray:4,samples:5},
+ 'R5614':{unitsPerTray:8,samples:5},
+ 'R5751':{unitsPerTray:6,samples:5},
+ 'R5783':{unitsPerTray:4,samples:5},
+ 'R5602':{unitsPerTray:6,samples:5},
+ 'R5732':{unitsPerTray:6,samples:5},
+ 'R5572':{unitsPerTray:12,samples:5},
+ 'R5463':{unitsPerTray:18,samples:5},
+ 'R5686':{unitsPerTray:18,samples:5},
+ 'R4923':{unitsPerTray:12,samples:5},
+ 'R5609':{unitsPerTray:12,samples:5},
+ 'R5613':{unitsPerTray:6,samples:5},
+ 'R5725':{unitsPerTray:6,samples:5},
+ 'R5748':{unitsPerTray:6,samples:5},
+ 'R5781':{unitsPerTray:4,samples:5},
+ 'R5749':{unitsPerTray:6,samples:5},
+ 'R5782':{unitsPerTray:4,samples:5},
+ 'R5731':{unitsPerTray:4,samples:5},
+ 'R5717':{unitsPerTray:6,samples:5},
+ 'R5744':{unitsPerTray:6,samples:5},
+ 'R5607':{unitsPerTray:4,samples:5},
+ 'R4938':{unitsPerTray:16,samples:5},
+ 'R5608':{unitsPerTray:16,samples:5},
+ 'R5611':{unitsPerTray:6,samples:5},
+ 'R5612':{unitsPerTray:6,samples:5},
+ 'R5571':{unitsPerTray:8,samples:5},
+ 'R5573':{unitsPerTray:4,samples:5},
+ 'R5675':{unitsPerTray:4,samples:5},
+ 'R5458':{unitsPerTray:4,samples:5},
+ 'R5683':{unitsPerTray:4,samples:5},
+ 'R4918':{unitsPerTray:6,samples:5},
+ 'R5648':{unitsPerTray:4,samples:5},
+ 'R5230':{unitsPerTray:6,samples:5},
+ 'R5553':{unitsPerTray:4,samples:5},
+ 'R5459':{unitsPerTray:8,samples:5},
+ 'R5460':{unitsPerTray:4,samples:5},
+ 'R5534':{unitsPerTray:12,samples:5},
+ 'R5703':{unitsPerTray:6,samples:5},
+ 'R5474':{unitsPerTray:6,samples:5},
+ 'R5741':{unitsPerTray:12,samples:5},
+ 'R5740':{unitsPerTray:6,samples:5},
+ 'R5772':{unitsPerTray:6,samples:5},
+ 'R5771':{unitsPerTray:6,samples:5},
+ 'R5448':{unitsPerTray:4,samples:5},
+ 'R5695':{unitsPerTray:6,samples:5},
+ 'R5807':{unitsPerTray:4,samples:5},
+ 'R5694':{unitsPerTray:6,samples:5},
+ 'R5806':{unitsPerTray:4,samples:5},
+ 'R5770':{unitsPerTray:6,samples:5},
+ 'R5679':{unitsPerTray:4,samples:5},
+ 'R5579':{unitsPerTray:6,samples:5},
+ 'R5446':{unitsPerTray:6,samples:5},
+ 'R5677':{unitsPerTray:4,samples:5},
+ 'R5758':{unitsPerTray:6,samples:5},
+ 'R5678':{unitsPerTray:4,samples:5}
 };
 function fillProductDefaults(tr){
  const code=tr.children[2].firstChild.value.trim().toUpperCase();
@@ -63,7 +274,13 @@ function fillProduct(tr){
    if(!product.value.trim()||product.value===previous){product.value=PRODUCT_LOOKUP[normalized];product.dataset.lookupValue=product.value;}
  }
 }
-const head=document.getElementById('head'),body=document.getElementById('rows');headers.forEach(h=>{let th=document.createElement('th');th.textContent=h;head.append(th)});const KEY='greencore-sic-paper-v5';let data={};try{data=JSON.parse(localStorage.getItem(KEY))||{};if(!Object.keys(data).length){const old=JSON.parse(localStorage.getItem('greencore-sic-paper-v3'))||{};data={...old};for(const k of Object.keys(old)){const m=/^r(\d+)c(\d+)$/.exec(k);if(m){const col=Number(m[2]);if(col===16)delete data[k];else if(col>16){delete data[k];data['r'+m[1]+'c'+(col-1)]=old[k]}}}}}catch(e){}function save(){document.querySelectorAll('[data-key]').forEach(el=>data[el.dataset.key]=el.value);localStorage.setItem(KEY,JSON.stringify(data))}function addRow(){let i=body.children.length;let tr=document.createElement('tr');headers.forEach((h,j)=>{let td=document.createElement('td'),inp=document.createElement('input');inp.setAttribute('aria-label',h+' row '+(i+1));inp.dataset.key='r'+i+'c'+j;inp.value=data[inp.dataset.key]||'';if(j===0||j===1){inp.inputMode='numeric';inp.maxLength=5;inp.placeholder='00:00';inp.addEventListener('input',()=>{inp.value=inp.value.trim()==='='?'=':formatTime(inp.value);refreshTotals();save()})}else if(j===4){inp.inputMode='numeric';inp.maxLength=10;inp.placeholder='DD/MM/YYYY';inp.addEventListener('input',()=>{inp.value=formatDate(inp.value);save()})}else if(j===7||j===17){inp.readOnly=true;inp.tabIndex=-1;inp.title=j===7?'Units per tray × Total trays':'Extra Loose packs ÷ Units per tray';inp.className='calculated'}else{if(j===14||j===15||j===16)inp.inputMode='decimal';inp.addEventListener('input',()=>{if(j===2){fillProduct(tr);fillProductDefaults(tr);}if(j===14||j===15||j===16)calculate(tr);refreshTotals();save()})}td.append(inp);if(j===5){td.classList.add('order-cell');let toggle=document.createElement('button');toggle.type='button';toggle.className='order-toggle';toggle.textContent='✓';toggle.title='Toggle green order update highlight';toggle.setAttribute('aria-label','Mark order updated green');toggle.addEventListener('click',()=>{data['orderGreen'+i]=!data['orderGreen'+i];refreshHighlights();save()});td.append(toggle)}tr.append(td)});body.append(tr);fillProduct(tr);fillProductDefaults(tr);calculate(tr);data.rowCount=body.children.length;refreshTotals();save()}for(let i=0;i<Math.max(9,data.rowCount||9);i++)addRow();document.querySelectorAll('.meta input,.comment input,.footer input').forEach(el=>{if(data[el.dataset.key]!==undefined)el.value=data[el.dataset.key];if(el.classList.contains('date-field'))el.addEventListener('input',()=>{el.value=formatDate(el.value);save()});else el.addEventListener('input',save)});function formatTime(v){if(v.trim()==='=')return '=';let d=v.replace(/\D/g,'').slice(0,4);return d.length>2?d.slice(0,2)+':'+d.slice(2):d}function formatDate(v){let d=v.replace(/\D/g,'').slice(0,8);return [d.slice(0,2),d.slice(2,4),d.slice(4,8)].filter(Boolean).join('/')}function calculate(tr){let a=Number(tr.children[14]?.firstChild.value),b=Number(tr.children[15]?.firstChild.value),out=tr.children[7]?.firstChild;if(out)out.value=(tr.children[14].firstChild.value!==''&&tr.children[15].firstChild.value!=='')?String(a*b):'';const extra=tr.children[16]?.firstChild.value.trim(),tray=tr.children[14]?.firstChild.value.trim(),extraOut=tr.children[17]?.firstChild;if(extraOut){const qty=Number(extra),units=Number(tray);extraOut.value=extra!==''&&tray!==''&&Number.isFinite(qty)&&Number.isFinite(units)&&units>0&&qty>=0?String(Number((qty/units).toFixed(3))):''}}function refreshHighlights(){
+const head=document.getElementById('head'),body=document.getElementById('rows');headers.forEach(h=>{let th=document.createElement('th');th.textContent=h;head.append(th)});const KEY='greencore-sic-paper-v5';let data={};try{data=JSON.parse(localStorage.getItem(KEY))||{};if(!Object.keys(data).length){const old=JSON.parse(localStorage.getItem('greencore-sic-paper-v3'))||{};data={...old};for(const k of Object.keys(old)){const m=/^r(\d+)c(\d+)$/.exec(k);if(m){const col=Number(m[2]);if(col===16)delete data[k];else if(col>16){delete data[k];data['r'+m[1]+'c'+(col-1)]=old[k]}}}}}catch(e){}function save(){document.querySelectorAll('[data-key]').forEach(el=>data[el.dataset.key]=el.value);localStorage.setItem(KEY,JSON.stringify(data))}function addRow(){let i=body.children.length;let tr=document.createElement('tr');headers.forEach((h,j)=>{let td=document.createElement('td'),inp=document.createElement('input');inp.setAttribute('aria-label',h+' row '+(i+1));inp.dataset.key='r'+i+'c'+j;inp.value=data[inp.dataset.key]||'';if(j===0||j===1){inp.inputMode='numeric';inp.maxLength=5;inp.placeholder='00:00';inp.addEventListener('input',()=>{inp.value=inp.value.trim()==='='?'=':formatTime(inp.value);refreshTotals();save()})}else if(j===4){inp.inputMode='numeric';inp.maxLength=10;inp.placeholder='DD/MM/YYYY';inp.addEventListener('input',()=>{inp.value=formatDate(inp.value);save()})}else if(j===7||j===17){inp.readOnly=true;inp.tabIndex=-1;inp.title=j===7?'Units per tray × Total trays':'Extra Loose packs ÷ Units per tray';inp.className='calculated'}else{if(j===14||j===15||j===16)inp.inputMode='decimal';inp.addEventListener('input',()=>{if(j===2){
+ const productField=tr.children[3].firstChild;
+ if(productField.dataset.lookupValue && productField.value===productField.dataset.lookupValue)productField.value='';
+ const unitField=tr.children[14].firstChild;
+ if(unitField.dataset.lookupValue && unitField.value===unitField.dataset.lookupValue)unitField.value='';
+ fillProduct(tr);fillProductDefaults(tr);
+}if(j===14||j===15||j===16)calculate(tr);refreshTotals();save()})}td.append(inp);if(j===5){td.classList.add('order-cell');let toggle=document.createElement('button');toggle.type='button';toggle.className='order-toggle';toggle.textContent='✓';toggle.title='Toggle green order update highlight';toggle.setAttribute('aria-label','Mark order updated green');toggle.addEventListener('click',()=>{data['orderGreen'+i]=!data['orderGreen'+i];refreshHighlights();save()});td.append(toggle)}tr.append(td)});body.append(tr);fillProduct(tr);fillProductDefaults(tr);calculate(tr);data.rowCount=body.children.length;refreshTotals();save()}for(let i=0;i<Math.max(9,data.rowCount||9);i++)addRow();document.querySelectorAll('.meta input,.comment input,.footer input').forEach(el=>{if(data[el.dataset.key]!==undefined)el.value=data[el.dataset.key];if(el.classList.contains('date-field'))el.addEventListener('input',()=>{el.value=formatDate(el.value);save()});else el.addEventListener('input',save)});function formatTime(v){if(v.trim()==='=')return '=';let d=v.replace(/\D/g,'').slice(0,4);return d.length>2?d.slice(0,2)+':'+d.slice(2):d}function formatDate(v){let d=v.replace(/\D/g,'').slice(0,8);return [d.slice(0,2),d.slice(2,4),d.slice(4,8)].filter(Boolean).join('/')}function calculate(tr){let a=Number(tr.children[14]?.firstChild.value),b=Number(tr.children[15]?.firstChild.value),out=tr.children[7]?.firstChild;if(out)out.value=(tr.children[14].firstChild.value!==''&&tr.children[15].firstChild.value!=='')?String(a*b):'';const extra=tr.children[16]?.firstChild.value.trim(),tray=tr.children[14]?.firstChild.value.trim(),extraOut=tr.children[17]?.firstChild;if(extraOut){const qty=Number(extra),units=Number(tray);extraOut.value=extra!==''&&tray!==''&&Number.isFinite(qty)&&Number.isFinite(units)&&units>0&&qty>=0?String(Number((qty/units).toFixed(3))):''}}function refreshHighlights(){
  for(const [i,tr] of [...body.children].entries()){
   const packs=tr.children[7].firstChild.value.trim(),oal=tr.children[9].firstChild.value.trim();
   tr.children[9].classList.toggle('oal-green',packs!==''&&oal!==''&&Number.isFinite(Number(oal))&&Number(oal)>Number(packs));
@@ -170,10 +387,54 @@ function showImport(kind){importKind=kind;document.getElementById('importTitle')
 function closeImport(){document.getElementById('importPanel').classList.remove('open')}
 function importStatus(msg){document.getElementById('importStatus').textContent=msg}
 function loadOCR(){return new Promise((resolve,reject)=>{if(window.Tesseract)return resolve();const el=document.createElement('script');el.src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';el.onload=resolve;el.onerror=()=>reject(Error('OCR could not load. Connect to the internet or paste the text manually.'));document.head.appendChild(el)})}
-async function readPhoto(e){const file=e.target.files[0];if(!file)return;const url=URL.createObjectURL(file);const img=document.getElementById('importPreview');img.src=url;img.style.display='block';importStatus('Reading photo… this may take a minute on iPhone.');try{await loadOCR();const worker=await Tesseract.createWorker('eng');const result=await worker.recognize(file);await worker.terminate();document.getElementById('importText').value=result.data.text||'';importStatus('Photo read. Check the recognised text, then tap Find products.');parseImport()}catch(err){importStatus(err.message+' You can type or paste the details into the text box.')}finally{URL.revokeObjectURL(url)}}
+async function readPhoto(e){const file=e.target.files[0];if(!file)return;const url=URL.createObjectURL(file);const img=document.getElementById('importPreview');img.src=url;img.style.display='block';importStatus('Reading photo… this may take a minute on iPhone.');try{await loadOCR();const worker=await Tesseract.createWorker('eng');const result=await worker.recognize(file, {}, {tsv:true}); window.linePlanOCR=result.data;await worker.terminate();document.getElementById('importText').value=result.data.text||'';importStatus('Photo scanned. Review the matched table rows below.');parseImport()}catch(err){importStatus(err.message+' You can type or paste the details into the text box.')}finally{URL.revokeObjectURL(url)}}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function parseImport(){const text=document.getElementById('importText').value;const lines=text.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);importCandidates=[];for(let i=0;i<lines.length;i++){const line=lines[i];const matches=[...line.matchAll(/\bR\s*[-:]?\s*(\d{4,6})\b/gi)];for(const match of matches){const code='R'+match[1];const tail=line.slice(match.index+match[0].length).trim();const next=lines[i+1]||'';const description=(PRODUCT_LOOKUP[code]||tail.replace(/^[-: ]+/,''))||(!/\bR\s*\d{4,6}\b/i.test(next)?next:'');const context=[line,next].join(' ');const date=(context.match(/\b\d{2}\/\d{2}\/\d{4}\b/)||[])[0]||'';const planned=(context.match(/(?:planned\s*packs?|order\s*(?:qty|quantity)?|packs\s*planned)\s*[:=]?\s*(\d+)/i)||[])[1]||'';const units=(context.match(/(?:units\s*per\s*tray|per\s*tray|packs\s*per\s*tray)\s*[:=]?\s*(\d+)/i)||[])[1]||'';const samples=(context.match(/(?:samples?(?:\/temp)?(?:\s*packs?)?)\s*[:=]?\s*(\d+)/i)||[])[1]||'';if(!importCandidates.some(x=>x.code===code&&x.line===i))importCandidates.push({code,description,date,planned,units,samples,line:i});}}
-if(!importCandidates.length){importStatus('No R codes recognised. Correct the text or enter R codes in the review text, then try again.');document.getElementById('importReview').innerHTML='';return}renderImportReview();importStatus(importCandidates.length+' product row(s) found. Check and correct the values before importing.');}
+// Reads the *table geometry* of the D1 Assembly Work To List, rather than treating it as raw prose.
+function parseImport(){
+ const raw=document.getElementById('importText').value;
+ importCandidates=[];
+ const ocr=window.linePlanOCR;
+ if(importKind==='line' && ocr?.tsv){
+  const rows=ocr.tsv.split(/\r?\n/).slice(1).map(s=>s.split('\t')).filter(a=>a.length>=12&&Number(a[11])>15&&a[11].trim());
+  const words=rows.map(a=>({text:a.slice(11).join(' ').trim(),x:+a[6],y:+a[7],w:+a[8],h:+a[9]}));
+  const codes=words.filter(w=>/^R\s*\d{4,6}$/i.test(w.text.replace(/\s/g,'')));
+  const minX=Math.min(...words.map(w=>w.x)), maxX=Math.max(...words.map(w=>w.x+w.w));
+  const width=Math.max(1,maxX-minX);
+  // Column positions are calibrated to the sample D1 NewTech printout.
+  // The OCR's bounding boxes allow each row to be read horizontally.
+  const bounds=[.00,.105,.22,.31,.35,.39,.46,.53,.60,.67,.73,.78,.83,.88,.94,1.01];
+  const columns=['part','notes','product','type','trays','packs','actual','start','end','actualstart','actualend','dispatch','useby','speed','packtray','crew'];
+  const planDate=(raw.match(/Prod\s*Date\s*:?\s*(\d{2}\/\d{2}\/\d{4})/i)||[])[1]||'';
+  const sorted=codes.sort((a,b)=>a.y-b.y);
+  for(let i=0;i<sorted.length;i++){
+   const anchor=sorted[i], cy=anchor.y+anchor.h/2;
+   const next=sorted[i+1];
+   const half=Math.max(9,Math.min(26,(next?next.y-anchor.y:30)*.42));
+   const band=words.filter(w=>Math.abs(w.y+w.h/2-cy)<half);
+   const grouped=Object.fromEntries(columns.map(k=>[k,[]]));
+   for(const w of band){const ratio=(w.x+w.w/2-minX)/width;let j=bounds.findIndex((v,k)=>k<bounds.length-1&&ratio>=v&&ratio<bounds[k+1]);if(j>=0&&columns[j])grouped[columns[j]].push(w)}
+   const get=k=>grouped[k].sort((a,b)=>a.x-b.x).map(w=>w.text).join(' ').trim();
+   const code='R'+anchor.text.replace(/\D/g,'');
+   const numeric=t=>(String(t).match(/^\d{1,6}$/)||[])[0]||'';
+   const desc=get('product')||PRODUCT_LOOKUP[code]||'';
+   const planned=numeric(get('packs'));
+   const units=numeric(get('packtray'));
+   const useBy=(get('useby').match(/\d{2}\/\d{2}\/\d{4}/)||[])[0]||'';
+   importCandidates.push({code,description:desc,date:useBy,planned,units,samples:'',line:i});
+  }
+  if(importCandidates.length){renderImportReview();importStatus(importCandidates.length+' rows detected from the photographed table. Review every value, especially pack quantities and date codes. Start and Finish Times are always left blank.');return}
+ }
+ // Manual OCR/pasted-text fallback; no unverified numerical guesses.
+ const lines=raw.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ for(let i=0;i<lines.length;i++){
+  const m=lines[i].match(/\bR\s*[-:]?\s*(\d{4,6})\b/i);if(!m)continue;
+  const code='R'+m[1];const tail=lines[i].slice(m.index+m[0].length).trim();
+  const description=PRODUCT_LOOKUP[code]||tail.replace(/^[-: ]+/,'');
+  importCandidates.push({code,description,date:'',planned:'',units:'',samples:'',line:i});
+ }
+ if(!importCandidates.length){importStatus('Could not identify R-code rows. Try a closer, well-lit photo taken directly above the page.');document.getElementById('importReview').innerHTML='';return}
+ renderImportReview();importStatus(importCandidates.length+' R codes found. OCR could not reliably match the columns; check and enter quantities manually.');
+}
 function renderImportReview(){const cols=['code','description','date','planned','units','samples'];document.getElementById('importReview').innerHTML='<table><thead><tr>'+['R code','Product','Date code','Planned packs','Units/tray','Samples'].map(x=>'<th>'+x+'</th>').join('')+'</tr></thead><tbody>'+importCandidates.map((r,i)=>'<tr>'+cols.map(k=>'<td><input aria-label="'+k+'" data-import-row="'+i+'" data-import-col="'+k+'" value="'+esc(r[k])+'"></td>').join('')+'</tr>').join('')+'</tbody></table><button class="primary" onclick="applyImport()">Add reviewed rows to SIC</button>';}
 function applyImport(){document.querySelectorAll('[data-import-row]').forEach(el=>{importCandidates[+el.dataset.importRow][el.dataset.importCol]=el.value.trim()});let count=0;for(const item of importCandidates){if(!/^R?\d{4,6}$/i.test(item.code))continue;const tr= [...body.children].find(r=>!r.children[2].firstChild.value.trim()&&!r.children[3].firstChild.value.trim())||(addRow(),body.lastElementChild);const put=(j,value)=>{if(value!==''&&value!=null)tr.children[j].firstChild.value=value};put(2,item.code.toUpperCase().replace(/^R?/,'R'));fillProduct(tr);if(item.description)put(3,item.description);if(item.date)put(4,item.date);if(item.planned)put(6,item.planned);if(item.units)put(14,item.units);if(item.samples)put(13,item.samples);fillProductDefaults(tr);calculate(tr);count++}refreshTotals();save();fitAllFields();importStatus(count+' row(s) imported. Please verify against the original photo.');closeImport()}
 function exportData(){save();let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));a.download='SIC-sheet-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),500)}function restoreData(e){let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{data=JSON.parse(r.result);localStorage.setItem(KEY,JSON.stringify(data));location.reload()}catch(e){alert('Invalid backup file')}};r.readAsText(f)}
