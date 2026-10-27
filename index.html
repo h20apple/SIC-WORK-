@@ -22,8 +22,14 @@
 @media print{.sheet td{overflow:visible;height:auto!important}.sheet td .print-value{height:auto!important;min-height:24px}.sheet tr{break-inside:avoid;page-break-inside:avoid}}
 
 .import-panel{display:none;background:#fff;border:2px solid #28533d;margin:8px;padding:14px;border-radius:8px;max-width:950px}.import-panel.open{display:block}.import-panel textarea{width:100%;min-height:110px;font:14px monospace}.import-panel button{padding:9px;margin:5px 4px 5px 0}.import-panel .status{font-size:13px}.import-panel .review{max-height:320px;overflow:auto}.import-panel table{border-collapse:collapse;width:100%;font-size:12px}.import-panel td,.import-panel th{border:1px solid #aaa;padding:4px}.import-panel input{width:100%;min-width:80px;font-size:14px;padding:5px}.import-panel img{max-width:260px;max-height:170px;object-fit:contain}@media print{.import-panel{display:none!important}}
+
+/* Redzone: compact, readable two-line summary with no overlap */
+.sheet th:nth-child(19){font-size:8px}
+.sheet td:nth-child(19){overflow:hidden}
+.sheet td:nth-child(19) input{font-size:9px!important;letter-spacing:-.3px;padding:1px!important;min-width:0;text-overflow:clip}
+@media print{.sheet td:nth-child(19) .print-value{font-size:6.5px!important;line-height:1.2;white-space:normal;overflow-wrap:anywhere;word-break:normal;padding:1px!important}}
 </style></head><body><div class="toolbar"><strong>Editable SIC Sheet · v10 A4 + Packs Produced Run Totals</strong><span class="hint">Tap any box to edit · Saves automatically</span><button onclick="showImport('line')">📷 Scan Line Plan</button><button onclick="showImport('order')">📷 Order Sheet</button><button onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><section class="import-panel" id="importPanel"><strong id="importTitle">Import photo</strong><p class="status" id="importStatus">Select a clear photo. OCR requires an internet connection the first time.</p><input type="file" id="importPhoto" accept="image/*" onchange="readPhoto(event)"><div><img id="importPreview" alt="Selected document" style="display:none"></div><p><strong>Text recognised (editable)</strong></p><textarea id="importText" placeholder="OCR text appears here. You can also paste or type the plan text yourself."></textarea><div><button onclick="parseImport()">Find products</button><button onclick="closeImport()">Close</button></div><div class="review" id="importReview"></div><p class="status">Review each field before applying. Existing SIC rows are not overwritten automatically. Line plan columns are matched by their positions. Check all extracted values. Planned times and trays are never copied into actual production fields.</p></section><div class="mobile-tip">Swipe sideways to see the whole paper sheet. Zoom out to see the full layout.</div><div class="scroll"><main class="paper"><div class="top"><div class="site">Bo'ness<br><small>CCP9</small></div><div class="heading">Record for:<br>Despatch Short Interval Control (SIC) Sheet</div><div class="logo">Greencore®</div></div><div class="instructions">Reason for Issue: New document issued<br>Purpose: Real-time monitoring of production output, order fulfilment, mass balance the total number of packs against LOMA and OAL, and waste<br>Responsibility: Despatch Team leaders are responsible for completing the SIC sheet. Despatch Managers are responsible for reviewing performance and ensuring corrective actions are completed.<br>Procedure: Complete the SIC sheet at the defined monitoring intervals throughout the shift.<br>Retrieve the total number of reads from the Olympus system by running the Statistics Report after the production run has been completed and record the result in the OAL Total Reads field. Compare the results against packs produced and<br>identify any deviations, losses, quality failures, or delays.<br>Team Leader or Manager to verify the information and sign the sheet.<br>Corrective Action: If the number of OAL reads is lower than the number of packs produced, Despatch Manager must be informed, and issue investigated</div><section class="meta"><label class="date">Date: <input data-key="date" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" class="date-field"></label><label class="dell">Dell: <input data-key="dell"></label><label class="shift">Shift: <input data-key="shift"></label><label class="leader">Team Leader: <input data-key="leader"></label><label class="manager">Section Leader/ Manager: <input data-key="manager"></label><label class="line">Line: <input data-key="line"></label></section><label class="comment">Actions/Comments: <input data-key="actions"></label><table class="sheet"><thead><tr id="head"></tr></thead><tbody id="rows"></tbody></table><div class="footer"><span>Greencore Bo'ness</span><span>Version <input data-key="version"></span><span>Page <input data-key="page" value="1"></span></div></main></div><script>
-const headers=['Start Time','Finish time','R-code','Product Description','Date code','Order Update (Depot)','Planned Packs','Packs Produced','LOMA packs total','OAL total reads','Despatch Waste','Dell Rejects','Dell Burst packs','Samples/ Temp packs','Units per tray','Total trays','Extra Loose packs','Extra trays','Comments'];
+const headers=['Start Time','Finish time','R-code','Product Description','Date code','Order Update (Depot)','Planned Packs','Packs Produced','LOMA packs total','OAL total reads','Despatch Waste','Dell Rejects','Dell Burst packs','Samples/ Temp packs','Units per tray','Total trays','Extra Loose packs','Extra trays','Redzone'];
 const PRODUCT_LOOKUP={
  'R5538':'OC Honey Roast Salmon Pasta Salad (Small)',
  'R5483':'MS Honey Roast Salmon Pasta',
@@ -295,6 +301,14 @@ function refreshTotals(){refreshHighlights();
   if(continuation&&groups.length)groups[groups.length-1].push(i);
   else groups.push([i]);
  }
+ // Clear only order updates that this calculation previously generated.
+ for(const tr of trs){
+  const order=tr.children[5].firstChild;
+  if(order.dataset.autoOrder==='1'){
+   if(order.value===order.dataset.autoOrderText)order.value='';
+   delete order.dataset.autoOrder;delete order.dataset.autoOrderText;
+  }
+ }
  // Remove previous automatic results before recalculating.
  for(const tr of trs){
   const comment=tr.children[18].firstChild;
@@ -313,15 +327,35 @@ function refreshTotals(){refreshHighlights();
   });
   if(!finished.length)continue;
   const finishIdx=finished[finished.length-1];
-  let total=0;
+  let total=0, waste=0;
   for(const idx of group){
    const row=trs[idx];
    total+=Number(row.children[7].firstChild.value)||0;
+   waste+=Number(row.children[10].firstChild.value)||0;
   }
   const comment=trs[finishIdx].children[18].firstChild;
-  comment.value=String(total);
+  comment.value=`Packs: ${total} | Waste: ${waste}`;
   comment.dataset.autoSummary='1';
+  comment.title=comment.value;
+  // A completed order requires a valid finish time AND enough actual packs
+  // to cover the planned packs for the same run. Waste is never counted.
+  const planned=group.reduce((sum,idx)=>sum+(Number(trs[idx].children[6].firstChild.value)||0),0);
+  if(planned>0 && total>=planned){
+   const last=trs[finishIdx];
+   const order=last.children[5].firstChild;
+   const name=group.map(idx=>trs[idx].children[3].firstChild.value.trim()).find(v=>v&&v!=='=')||'';
+   const isOC=/\bOC\b/i.test(name);
+   const totalTrays=group.reduce((sum,idx)=>sum+(Number(trs[idx].children[15].firstChild.value)||0),0);
+   const label=isOC?`${totalTrays} OC`:null;
+   // Preserve manually entered order-update notes.
+   if(isOC && !order.value.trim()){
+    order.value=label;order.dataset.autoOrder='1';order.dataset.autoOrderText=label;
+    data['orderGreen'+finishIdx]=true;
+   }
+  }
  }
+ refreshHighlights();
+ if(typeof fitAllFields==='function')fitAllFields();
 }
 
 refreshTotals();
