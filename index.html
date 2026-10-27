@@ -352,7 +352,7 @@ function refreshTotals(){refreshHighlights();
 
  }
  refreshHighlights();
- if(typeof fitAllFields==='function')fitAllFields();
+ if(window.__sicFitReady)fitAllFields();
 }
 
 refreshTotals();
@@ -394,6 +394,7 @@ const fitObserver=new MutationObserver(()=>requestAnimationFrame(fitAllFields));
 fitObserver.observe(document.getElementById('rows'),{childList:true,subtree:true});
 window.addEventListener('resize',fitAllFields);
 window.addEventListener('load',fitAllFields);
+window.__sicFitReady=true;
 requestAnimationFrame(fitAllFields);
 
 function printSheet(){
