@@ -343,7 +343,7 @@ function refreshTotals(){refreshHighlights();
   for(const idx of group){
    const row=trs[idx];
    total+=Number(row.children[7].firstChild.value)||0;
-   waste+=Number(row.children[10].firstChild.value)||0;
+   waste+=(Number(row.children[10].firstChild.value)||0)+(Number(row.children[11].firstChild.value)||0);
   }
   const comment=trs[finishIdx].children[18].firstChild;
   comment.value=`Packs ${total}\nWaste ${waste}`;
