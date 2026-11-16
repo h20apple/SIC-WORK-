@@ -86,8 +86,9 @@ async function saveCloud() {
   const serialized=JSON.stringify(payload);
   if(serialized===lastPayload)return true;
   say('Saving to cloud…');
-  const expectedVersion=current.updated_at;
   const task = async () => {
+    const expectedVersion=current?.id===sheetId?current.updated_at:null;
+    if(!expectedVersion)return false;
     const {data,error}=await sb.from('sheets').update({payload,sheet_date:String(payload.date||'')}).eq('id',sheetId).eq('status','draft').eq('updated_at',expectedVersion).select('id,updated_at');
     if(error || !data?.length){say('Save blocked: '+(error?errText(error):'Another device changed this sheet. Save a JSON backup before reloading.'));return false;}
     if(current?.id===sheetId){lastPayload=serialized;current.updated_at=data[0].updated_at;}
