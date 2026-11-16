@@ -135,7 +135,7 @@ async function importFinalChecks(){
  if(!checks?.length)return;
  const payload=JSON.parse(JSON.stringify(base));
  const links={...(payload.finalImports||{})};
- const count=Math.max(9,Math.min(100,Number(payload.rowCount)||9));
+ let count=Math.max(9,Math.min(100,Number(payload.rowCount)||9));
  const norm=v=>String(v||'').trim().toUpperCase().replace(/\s/g,'');
  let changed=false,skipped=0;
  for(const check of checks){
@@ -150,7 +150,7 @@ async function importFinalChecks(){
    index=Array.from({length:count},(_,i)=>i).find(i=>
     !String(payload['r'+i+'c2']||'').trim() &&
     ![0,1,3,4,6,14,15].some(j=>String(payload['r'+i+'c'+j]||'').trim()));
-   if(index===undefined&&count<100){index=count;payload.rowCount=count+1;}
+   if(index===undefined&&count<100){index=count;count++;payload.rowCount=count;}
    if(index===undefined){skipped++;continue;}
    payload['r'+index+'c2']=code;changed=true;
   }
@@ -522,7 +522,8 @@ async function refreshAccount(){
       applying=false;
       window.sicCloudApply?.({});
       if(role==='operator'){
-        say('Operator account · SIC Sheet access is restricted to Charge Hands and Managers.');
+        window.location.replace('./final-product.html');
+        say('Opening your Final Product Sheet…');
         showPermissions();
         return;
       }
