@@ -773,6 +773,14 @@ window.sicCloudApply=payload=>{
  document.querySelectorAll('.meta input,.comment input,.footer input').forEach(el=>{
    el.value=data[el.dataset.key]===undefined?'':String(data[el.dataset.key]);
  });
+ // Fill missing fields from the authenticated staff and selected cloud location.
+ const identity=window.sicSignedInIdentity;
+ if(identity){
+  for(const [key,value] of Object.entries({leader:identity.name,dell:identity.area,line:identity.line})){
+   const input=document.querySelector('.meta input[data-key="'+key+'"]');
+   if(input&&value&&!input.value.trim())input.value=value;
+  }
+ }
  refreshTotals();save();
 };
-</script><script type="module" src="./supabase-sync.js"></script></body></html>
+</script><script type="module" src="./supabase-sync.js?v=20261116-identity2"></script></body></html>
