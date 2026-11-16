@@ -9,7 +9,7 @@ const setAccess = allowed => {
   document.querySelector('#sb-panel > details').open = true;
 };
 const errText = e => (e?.message || String(e)).slice(0,180);
-let user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '', refreshing = false, activeUserId = null, saving = Promise.resolve(), hadSession = false;
+let user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '', refreshing = false, refreshQueued = false, activeUserId = null, saving = Promise.resolve(), hadSession = false;
 function canEdit() {
   return !!(user && role && current && current.status === 'draft' &&
     (role === 'manager' || role === 'charge_hand' || current.owner_id === user.id));
@@ -113,6 +113,8 @@ $('sb-login').addEventListener('submit',async e=>{
     if(!response.ok)throw Error(result.error||'Login failed');
     const {error}=await sb.auth.setSession({access_token:result.access_token,refresh_token:result.refresh_token});
     if(error)throw error;
+    say('Login accepted. Opening SIC Sheet…');
+    await refreshAccount();
   }catch(error){say('Sign-in failed: '+errText(error));}
 });
 $('sb-create-user').addEventListener('submit',async e=>{
@@ -161,7 +163,7 @@ $('sb-reopen').addEventListener('click',async()=>{
   await loadSheet(current.id,true);
 });
 async function refreshAccount(){
-  if(refreshing)return;
+  if(refreshing){refreshQueued=true;return;}
   refreshing=true;
   try {
   const {data:{user:authUser},error:authError}=await sb.auth.getUser();
@@ -181,7 +183,10 @@ async function refreshAccount(){
     }else{role=data.role;hadSession=true;activeUserId=user.id;say('Signed in as '+role+' · choose or create a cloud sheet');await listSheets();}
   }else say('Sign in to open your SIC Sheet.');
   showPermissions();
-  } finally {refreshing=false;}
+  } finally {
+    refreshing=false;
+    if(refreshQueued){refreshQueued=false;queueMicrotask(()=>refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));}));}
+  }
 }
 sb.auth.onAuthStateChange((event,_session)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='INITIAL_SESSION')setTimeout(()=>refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));}),0);});
 refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));});
