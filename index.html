@@ -344,7 +344,7 @@ body.manager-home .toolbar,body.manager-home .mobile-tip,body.manager-home .scro
 <div id="manager-choice" hidden><div class="md-choice-card"><h2>Welcome, Manager</h2><p>What would you like to open?</p><div class="md-choice-actions"><button id="md-choose-dashboard" type="button">📊 Manager Dashboard</button><button id="md-choose-sheet" type="button">📋 SIC Sheet</button></div></div></div>
 <section id="manager-dashboard" hidden aria-label="Manager Dashboard"><div class="md-shell">
 <div class="md-top"><div><h1 style="margin:0">Dispatch Control</h1><p style="margin:6px 0;color:#637486">Manager dashboard · Deli production overview</p></div><div class="md-action"><button id="md-refresh" type="button">Refresh</button><button id="md-open-sheet" type="button">Open SIC Sheet</button></div></div>
-<div class="md-tabs"><button type="button" data-md-tab="overview" aria-pressed="true">Production lines</button><button type="button" data-md-tab="audit" aria-pressed="false">Audit logs</button><button type="button" data-md-tab="accounts" aria-pressed="false">Accounts</button></div>
+<div class="md-action"><button id="md-back" type="button" hidden>← Back to dashboard</button></div><div class="md-tabs" id="md-tabs"><button type="button" data-md-tab="overview" aria-pressed="true">Production lines</button><button type="button" data-md-tab="audit" aria-pressed="false">Audit logs</button><button type="button" data-md-tab="accounts" aria-pressed="false" id="md-accounts-tab">Accounts</button></div>
 <p id="md-status" role="status"></p>
 <div id="md-overview"><div id="md-summary" class="md-grid"></div><div id="md-areas" class="md-grid"></div><div class="md-card"><h3 id="md-selected-title">Recent sheets</h3><div id="md-recent"></div></div></div>
 <div id="md-audit" hidden class="md-card"><h3>Audit logs</h3><p>Records of sheet creation, saves, approvals and account changes. Logs begin when this feature was enabled.</p><div id="md-audit-list"></div></div>
@@ -800,4 +800,4 @@ window.sicCloudApply=payload=>{
  }
  refreshTotals();save();
 };
-</script><script type="module" src="./supabase-sync.js?v=20261116-dashboard4"></script></body></html>
+</script><script type="module" src="./supabase-sync.js?v=20261116-navigation5"></script></body></html>
