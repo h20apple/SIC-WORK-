@@ -92,6 +92,8 @@ body.auth-locked #sb-panel p:last-child{font-size:12px;color:#506358}
 <p style="font-size:12px">Your existing local sheet stays on this device until you choose Create cloud sheet. Back up before opening a different sheet.</p></details></section><div class="mobile-tip">Swipe sideways to see the whole paper sheet. Zoom out to see the full layout.</div><div class="scroll"><main class="paper"><div class="top"><div class="site">SIC Sheet</div><div class="heading">Record for:<br>Despatch Short Interval Control (SIC) Sheet</div><div class="logo"></div></div><div class="instructions">Reason for Issue: New document issued<br>Purpose: Real-time monitoring of production output, order fulfilment, mass balance the total number of packs against LOMA and OAL, and waste<br>Responsibility: Despatch Team leaders are responsible for completing the SIC sheet. Despatch Managers are responsible for reviewing performance and ensuring corrective actions are completed.<br>Procedure: Complete the SIC sheet at the defined monitoring intervals throughout the shift.<br>Retrieve the total number of reads from the Olympus system by running the Statistics Report after the production run has been completed and record the result in the OAL Total Reads field. Compare the results against packs produced and<br>identify any deviations, losses, quality failures, or delays.<br>Team Leader or Manager to verify the information and sign the sheet.<br>Corrective Action: If the number of OAL reads is lower than the number of packs produced, Despatch Manager must be informed, and issue investigated</div><section class="meta"><label class="date">Date: <input data-key="date" type="text" inputmode="numeric" maxlength="10" placeholder="DD/MM/YYYY" class="date-field"></label><label class="dell">Dell: <input data-key="dell"></label><label class="shift">Shift: <input data-key="shift"></label><label class="leader">Team Leader: <input data-key="leader"></label><label class="manager">Section Leader/ Manager: <input data-key="manager"></label><label class="line">Line: <input data-key="line"></label></section><label class="comment">Actions/Comments: <input data-key="actions"></label><table class="sheet"><thead><tr id="head"></tr></thead><tbody id="rows"></tbody></table><div class="footer"><span>SIC Sheet</span><span>Version <input data-key="version" value="v1.2 by Ross Hutton"></span><span>Page <input data-key="page" value="1"></span></div></main></div><script>
 const headers=['Start Time','Finish time','R-code','Product Description','Date code','Order Update','Planned Packs','Packs Produced','LOMA packs total','OAL total reads','Despatch Waste','Dell Rejects','Dell Burst packs','Samples/ Temp packs','Units per tray','Total trays','Extra Loose packs','Extra trays','Redzone'];
 const PRODUCT_LOOKUP={
+ 'R5812':'4 Bean',
+ 'R5813':'4 Bean',
  'R5538':'OC Honey Roast Salmon Pasta Salad (Small)',
  'R5483':'MS Honey Roast Salmon Pasta',
  'R5537':'OC King Prawn Tomato & Basil Pasta Salad (Large)',
@@ -206,6 +208,8 @@ const PRODUCT_LOOKUP={
  'R5678':'Collections Ajvar Dip 170g'
 };
 const PRODUCT_DEFAULTS = {
+ 'R5812':{unitsPerTray:6},
+ 'R5813':{unitsPerTray:12},
  'R5538':{unitsPerTray:6,samples:5},
  'R5483':{unitsPerTray:6,samples:5},
  'R5537':{unitsPerTray:4,samples:5},
