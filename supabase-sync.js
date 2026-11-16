@@ -31,7 +31,7 @@ function showPermissions() {
   $('sb-approve').hidden = role !== 'manager' || !current || current.status === 'approved';
   $('sb-reopen').hidden = role !== 'manager' || !current || current.status !== 'approved';
   $('sb-save').disabled = !canEdit();
-  window.sicManagerReviewMode=!!(role==='manager'&&current&&current.payload?.endShift&&current.status==='draft');
+  window.sicManagerReviewMode=!!(role==='manager'&&current&&current.status==='draft');
   $('end-shift-button').disabled=!!current&&!canEdit();
   $('sb-mode').textContent = current ? (canEdit() ? 'Cloud draft · editable' : 'Cloud sheet · read-only') : 'Local sheet · not synced';
   document.querySelectorAll('.paper input,.paper textarea,.sheet .order-toggle,.sheet .circle-toggle').forEach(el => {
