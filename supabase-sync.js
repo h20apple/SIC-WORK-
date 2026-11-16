@@ -111,6 +111,7 @@ async function loadSheet(id, silent=false) {
   showPermissions();
   $('sb-sheets').value=id;
   say('Loaded '+(data.sheet_date||'cloud sheet')+' · '+data.status);
+  await importFinalChecks();
   // Subscribe to changes from other devices. Realtime requires publication enabled.
   watching=sb.channel('sic-sheet-'+id).on('postgres_changes',{
     event:'UPDATE',schema:'public',table:'sheets',filter:'id=eq.'+id
@@ -119,6 +120,63 @@ async function loadSheet(id, silent=false) {
 }
 // Refresh a shared sheet without clobbering local unsaved entries.
 let cloudRefreshBusy=false;
+// Operator-to-SIC import. Operators only write final_product_checks; never read SIC.
+async function importFinalChecks(){
+ if(!canEdit()||!current||!['charge_hand','manager'].includes(role))return;
+ if(JSON.stringify(sheetPayload())!==lastPayload)return;
+ const base=current.payload||{};
+ const productionDate=String(base.date||'').trim();
+ const deli=String(base.cloud_area||$('sb-area').value||'').trim();
+ const line=String(base.cloud_line||$('sb-line').value||'').trim();
+ if(!productionDate||!deli||!line)return;
+ const {data:checks,error}=await sb.from('final_product_checks').select('*')
+  .eq('production_date',productionDate).eq('deli',deli).eq('line',line).limit(150);
+ if(error){say('Final Product link check failed: '+errText(error));return;}
+ if(!checks?.length)return;
+ const payload=JSON.parse(JSON.stringify(base));
+ const links={...(payload.finalImports||{})};
+ const count=Math.max(9,Math.min(100,Number(payload.rowCount)||9));
+ const norm=v=>String(v||'').trim().toUpperCase().replace(/\s/g,'');
+ let changed=false,skipped=0;
+ for(const check of checks){
+  const code=norm(check.r_code);
+  if(!/^R\d+$/.test(code))continue;
+  const matches=[];
+  for(let i=0;i<count;i++)if(norm(payload['r'+i+'c2'])===code)matches.push(i);
+  if(matches.length>1){skipped++;continue;}
+  const previous=links[check.id];
+  let index=matches[0];
+  if(index===undefined){
+   index=Array.from({length:count},(_,i)=>i).find(i=>
+    !String(payload['r'+i+'c2']||'').trim() &&
+    ![0,1,3,4,6,14,15].some(j=>String(payload['r'+i+'c'+j]||'').trim()));
+   if(index===undefined&&count<100){index=count;payload.rowCount=count+1;}
+   if(index===undefined){skipped++;continue;}
+   payload['r'+index+'c2']=code;changed=true;
+  }
+  if(previous&&previous.row!==index){skipped++;continue;}
+  const mapping=[['trays',15,check.total_trays],['burst',12,check.burst_packs]];
+  let record={row:index,trays:previous?.trays??null,burst:previous?.burst??null};
+  for(const [key,col,value] of mapping){
+   if(value===null||value===undefined)continue;
+   const dest='r'+index+'c'+col;
+   const existing=String(payload[dest]??'').trim();
+   const prior=previous?.[key];
+   // Never overwrite values entered independently by a Charge Hand.
+   if(existing!==''&&!(previous&&String(prior)===existing)&&existing!==String(value)){skipped++;continue;}
+   if(existing!==String(value)){payload[dest]=String(value);changed=true;}
+   record[key]=value;
+  }
+  links[check.id]=record;
+ }
+ if(!changed)return;
+ payload.finalImports=links;
+ if(JSON.stringify(sheetPayload())!==lastPayload)return;
+ applying=true;
+ try{window.sicCloudApply(payload);applyLocation(payload);}finally{applying=false;}
+ const saved=await saveCloud();
+ if(saved)say('Final Product figures linked to SIC · '+checks.length+' checked'+(skipped?' · '+skipped+' require review':''));
+}
 async function refreshOpenSheet(){
  if(cloudRefreshBusy||applying||!current||!user)return;
  cloudRefreshBusy=true;
@@ -144,6 +202,7 @@ async function refreshOpenSheet(){
    }finally{applying=false;}
   }
   current=remote;lastPayload=incoming;showPermissions();
+  await importFinalChecks();
   if(incoming!==JSON.stringify(local))say('Cloud highlights and sheet updates received');
  }catch(error){say('Refresh failed: '+errText(error));}
  finally{cloudRefreshBusy=false;}
