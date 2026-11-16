@@ -31,6 +31,8 @@ function showPermissions() {
   $('sb-approve').hidden = role !== 'manager' || !current || current.status === 'approved';
   $('sb-reopen').hidden = role !== 'manager' || !current || current.status !== 'approved';
   $('sb-save').disabled = !canEdit();
+  window.sicManagerReviewMode=!!(role==='manager'&&current&&current.payload?.endShift&&current.status==='draft');
+  $('end-shift-button').disabled=!!current&&!canEdit();
   $('sb-mode').textContent = current ? (canEdit() ? 'Cloud draft · editable' : 'Cloud sheet · read-only') : 'Local sheet · not synced';
   document.querySelectorAll('.paper input,.paper textarea,.sheet .order-toggle,.sheet .circle-toggle').forEach(el => {
     el.disabled = !!current && !canEdit();
@@ -134,13 +136,14 @@ async function saveCloud() {
     if(!expectedVersion)return false;
     const {data,error}=await sb.from('sheets').update({payload,sheet_date:String(payload.date||'')}).eq('id',sheetId).eq('status','draft').eq('updated_at',expectedVersion).select('id,updated_at');
     if(error || !data?.length){say('Save blocked: '+(error?errText(error):'Another device changed this sheet. Save a JSON backup before reloading.'));return false;}
-    if(current?.id===sheetId){lastPayload=serialized;current.updated_at=data[0].updated_at;}
+    if(current?.id===sheetId){lastPayload=serialized;current.updated_at=data[0].updated_at;current.payload=payload;}
     say('Saved to Supabase');return true;
   };
   const result=saving.then(task,task);
   saving=result.then(()=>{},()=>{});
   return result;
 }
+window.addEventListener('sic-end-shift',async()=>{if(!current){say('End of shift marked locally. Create a cloud sheet to submit it for manager review.');return;}clearTimeout(saveTimer);if(await saveCloud())say('End of shift saved. Managers can now review this sheet in their dashboard.');});
 window.addEventListener('sic-local-saved',()=>{
   if(!canEdit()||applying)return;
   clearTimeout(saveTimer);
@@ -263,7 +266,7 @@ function drawManagerOverview(area=null,line=null){
  setManagerSubpage(!!(area&&line));
  const summary=$('md-summary'),areas=$('md-areas'),recent=$('md-recent');
  summary.replaceChildren();areas.replaceChildren();recent.replaceChildren();
- for(const [name,value] of [['Production lines',12],['Cloud sheets',managerSheets.length],['Draft sheets',managerSheets.filter(s=>s.status==='draft').length]]){
+ for(const [name,value] of [['Production lines',12],['Cloud sheets',managerSheets.length],['Awaiting review',managerSheets.filter(s=>s.payload?.endShift&&s.status==='draft').length]]){
   const c=mdEl('div',undefined,'md-card');c.append(mdEl('div',name),mdEl('h2',value));summary.append(c);
  }
  for(let d=1;d<=3;d++){
@@ -277,7 +280,7 @@ function drawManagerOverview(area=null,line=null){
  const chosen=managerSheets.filter(s=>(!area||sheetArea(s)===area)&&(!line||sheetLine(s)===line)).slice(0,50);
  if(!chosen.length){recent.append(mdEl('p','No saved sheets for this selection.'));return;}
  recent.append(managerTable(['Date','Area / line','Owner','Status','Open'],chosen.map(item=>[
-  item.sheet_date||'Undated',sheetArea(item)+' / '+sheetLine(item),item.payload?.cloud_username||managerName(item.owner_id),item.status,
+  item.sheet_date||'Undated',sheetArea(item)+' / '+sheetLine(item),item.payload?.cloud_username||managerName(item.owner_id),item.payload?.endShift&&item.status==='draft'?'END OF SHIFT · Review needed':item.status,
   managerButton('View sheet',async()=>{managerSwitch('sheet');await loadSheet(item.id,true);})
  ])));
 }
@@ -334,7 +337,7 @@ async function refreshManager(){
   const {data:profiles,error:profileError}=await sb.from('profiles').select('id,display_name,role,active').limit(300);
   if(profileError)throw profileError;managerProfiles=profiles||[];
   const {data,error}=await sb.from('sheets').select('id,owner_id,sheet_date,status,payload,updated_at').order('updated_at',{ascending:false}).limit(500);
-  if(error)throw error;managerSheets=data||[];
+  if(error)throw error;managerSheets=(data||[]).sort((a,b)=>Number(!!b.payload?.endShift&&b.status==='draft')-Number(!!a.payload?.endShift&&a.status==='draft'));
   drawManagerOverview(managerTab==='overview'?managerArea:null,managerTab==='overview'?managerLine:null);
   if(managerTab!=='overview')setManagerSubpage(true);
   if(managerTab==='audit')await drawManagerAudit();
