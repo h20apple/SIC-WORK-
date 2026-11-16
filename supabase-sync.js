@@ -395,5 +395,32 @@ async function refreshAccount(){
     if(refreshQueued){refreshQueued=false;queueMicrotask(()=>refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));}));}
   }
 }
+// Two-minute cloud refresh: never replace unsaved edits or change the selected sheet.
+let periodicSyncBusy=false;
+setInterval(async()=>{
+ if(periodicSyncBusy||!user||!role||!current||applying)return;
+ if(document.visibilityState==='hidden')return;
+ periodicSyncBusy=true;
+ try{
+  if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}
+  if(!await saveCloud())return;
+  await saving;
+  const id=current?.id;
+  if(!id)return;
+  const {data:remote,error}=await sb.from('sheets').select('*').eq('id',id).single();
+  if(error||!remote||current?.id!==id)return;
+  // A new edit may have occurred during the fetch; preserve it for the next sync.
+  if(JSON.stringify(sheetPayload())!==lastPayload)return;
+  const incoming=JSON.stringify(remote.payload||{});
+  if(incoming!==lastPayload){
+   applying=true;
+   try{window.sicCloudApply(remote.payload||{});applyLocation(remote.payload);}
+   finally{applying=false;}
+   say('Sheet refreshed from cloud');
+  }
+  current=remote;lastPayload=incoming;showPermissions();
+ }catch(error){say('Cloud refresh delayed: '+errText(error));}
+ finally{periodicSyncBusy=false;}
+},120000);
 sb.auth.onAuthStateChange((event,_session)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='INITIAL_SESSION')setTimeout(()=>refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));}),0);});
 refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));});
