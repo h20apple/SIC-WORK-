@@ -224,7 +224,7 @@ function setManagerSubpage(open){
  $('md-areas').hidden=open;
  $('md-tabs').hidden=open;
 }
-$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;setManagerSubpage(false);drawManagerOverview();});
+$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','audit','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
 function managerWelcome(){
  // Managers can open the dashboard from the toolbar at any time.
  // Do not interrupt their SIC Sheet with a login choice overlay.
@@ -330,7 +330,8 @@ async function refreshManager(){
   if(profileError)throw profileError;managerProfiles=profiles||[];
   const {data,error}=await sb.from('sheets').select('id,owner_id,sheet_date,status,payload,updated_at').order('updated_at',{ascending:false}).limit(500);
   if(error)throw error;managerSheets=data||[];
-  drawManagerOverview(managerArea,managerLine);
+  drawManagerOverview(managerTab==='overview'?managerArea:null,managerTab==='overview'?managerLine:null);
+  if(managerTab!=='overview')setManagerSubpage(true);
   if(managerTab==='audit')await drawManagerAudit();
   if(managerTab==='accounts')await drawManagerAccounts();
   $('md-status').textContent='Last refreshed '+new Date().toLocaleTimeString('en-GB');
