@@ -249,12 +249,13 @@ async function managerRequest(body){
 }
 async function drawManagerAccounts(){
  const root=$('md-account-list');root.replaceChildren();
- const {data,error}=await sb.from('profiles').select('id,display_name,role,active').order('display_name').limit(300);
- if(error){root.append(mdEl('p','Unable to load accounts: '+errText(error)));return;}
- managerProfiles=data||[];
+ let data;
+ try{data=(await managerRequest({action:'list_accounts'})).accounts||[];}
+ catch(error){root.append(mdEl('p','Unable to load accounts: '+errText(error)));return;}
+ managerProfiles=data;
  for(const profile of managerProfiles){
   const c=mdEl('div',undefined,'md-card');c.style.marginBottom='10px';
-  c.append(mdEl('strong',profile.display_name||profile.id.slice(0,8)),mdEl('p',profile.role+' · '+(profile.active?'Active':'Inactive')));
+  c.append(mdEl('strong',profile.username||profile.id.slice(0,8)),mdEl('p',(profile.display_name?profile.display_name+' · ':'')+profile.role+' · '+(profile.active?'Active':'Inactive')));
   const actions=mdEl('div',undefined,'md-action');
   const roleSelect=mdEl('select');for(const roleName of ['operator','charge_hand','manager']){const opt=mdEl('option',roleName.replace('_',' '));opt.value=roleName;opt.selected=roleName===profile.role;roleSelect.append(opt);}
   actions.append(roleSelect,managerButton('Save role',async()=>{
