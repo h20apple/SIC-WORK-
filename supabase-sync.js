@@ -4,6 +4,10 @@ import { supabaseUrl, supabasePublishableKey } from './supabase-config.js';
 const sb = createClient(supabaseUrl, supabasePublishableKey);
 const $ = id => document.getElementById(id);
 const say = msg => { $('sb-status').textContent = msg; };
+const setAccess = allowed => {
+  document.body.classList.toggle('auth-locked', !allowed);
+  document.querySelector('#sb-panel > details').open = true;
+};
 const errText = e => (e?.message || String(e)).slice(0,180);
 let user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '';
 function canEdit() {
@@ -11,7 +15,8 @@ function canEdit() {
     (role === 'manager' || role === 'charge_hand' || current.owner_id === user.id));
 }
 function showPermissions() {
-  $('sb-login').hidden = !!user;
+  setAccess(!!(user && role));
+  $('sb-login').hidden = !!(user && role);
   $('sb-account').hidden = !user || !role;
   $('sb-identity').textContent = user?.email?.split('@')[0] || '';
   $('sb-staff-admin').hidden = role !== 'manager';
@@ -27,7 +32,7 @@ function showPermissions() {
   const locked = !!current && !canEdit();
   // A new blank sheet or restore must not silently overwrite an attached cloud sheet.
   $('local-new').disabled = !!current;
-  $('local-add').disabled = locked;
+  $('local-add').disabled = locked || !role;
   $('local-restore').disabled = !!current;
 }
 async function listSheets() {
@@ -147,15 +152,18 @@ $('sb-reopen').addEventListener('click',async()=>{
 async function refreshAccount(){
   if(watching){await sb.removeChannel(watching);watching=null;}
   clearTimeout(saveTimer);current=null;role=null;lastPayload='';
+  setAccess(false);
   const {data:{user:authUser}}=await sb.auth.getUser();
   user=authUser;
   if(user){
     const {data,error}=await sb.from('profiles').select('role,active').eq('id',user.id).single();
     if(error||!data?.active||!['operator','charge_hand','manager'].includes(data.role)){
-      say('Account needs an active profile and role. Ask your Supabase administrator.');
+      user=null;
+      await sb.auth.signOut();
+      say('Account is inactive or has no assigned role. Ask your Manager.');
     }else{role=data.role;say('Signed in as '+role+' · choose or create a cloud sheet');await listSheets();}
-  }else say('Sign in to use cloud sheets. Local editing is still available.');
+  }else say('Sign in to open your SIC Sheet.');
   showPermissions();
 }
 sb.auth.onAuthStateChange((_event,_session)=>{setTimeout(refreshAccount,0);});
-refreshAccount();
+refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));});
