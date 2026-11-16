@@ -173,6 +173,33 @@ body.auth-locked #sb-panel p:last-child{font-size:12px;color:#506358}
  .footer{margin-top:5mm!important;font-size:9px!important}
  .sheet tr{break-inside:avoid!important;page-break-inside:avoid!important}
 }
+
+/* A4 management print: omit Redzone only from paper, preserve on-screen data. */
+@media print{
+ .sheet th:nth-child(19),.sheet td:nth-child(19){display:none!important}
+ .sheet th:nth-child(1){width:4.639%!important}
+ .sheet th:nth-child(2){width:4.639%!important}
+ .sheet th:nth-child(3){width:4.845%!important}
+ .sheet th:nth-child(4){width:14.433%!important}
+ .sheet th:nth-child(5){width:6.289%!important}
+ .sheet th:nth-child(6){width:5.464%!important}
+ .sheet th:nth-child(7){width:5.052%!important}
+ .sheet th:nth-child(8){width:5.361%!important}
+ .sheet th:nth-child(9){width:4.742%!important}
+ .sheet th:nth-child(10){width:4.639%!important}
+ .sheet th:nth-child(11){width:5.155%!important}
+ .sheet th:nth-child(12){width:4.330%!important}
+ .sheet th:nth-child(13){width:5.155%!important}
+ .sheet th:nth-child(14){width:5.464%!important}
+ .sheet th:nth-child(15){width:4.639%!important}
+ .sheet th:nth-child(16){width:4.639%!important}
+ .sheet th:nth-child(17){width:6.186%!important}
+ .sheet th:nth-child(18){width:4.330%!important}
+ .sheet th{font-size:8.5px!important}
+ .sheet td .print-value{font-size:9.3px!important}
+ .sheet td:nth-child(4) .print-value{font-size:9px!important}
+ .sheet td:nth-child(5) .print-value{font-size:8.1px!important}
+}
 </style></head><body class="auth-locked"><div class="toolbar"><strong>SIC Sheet · v1.2 by Ross Hutton</strong><span class="hint">Tap any box to edit · Saves automatically</span><button id="local-new" onclick="newSheet()">New blank sheet</button><button id="local-add" onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button id="local-restore" onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><style>#sb-panel [hidden]{display:none!important}#sb-panel button{padding:9px;cursor:pointer}#sb-panel input,#sb-panel select{font-size:16px}</style>
 <section id="sb-panel" style="background:#e9f3ee;padding:10px 16px;border-bottom:1px solid #9eb5a5;font:14px Arial">
 <details open><summary style="cursor:pointer;font-weight:bold">☁ Supabase cloud login · <span id="sb-mode">Local sheet · not synced</span></summary>
