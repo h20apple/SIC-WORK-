@@ -13,7 +13,8 @@ function canEdit() {
 function showPermissions() {
   $('sb-login').hidden = !!user;
   $('sb-account').hidden = !user || !role;
-  $('sb-identity').textContent = user?.email || '';
+  $('sb-identity').textContent = user?.email?.split('@')[0] || '';
+  $('sb-staff-admin').hidden = role !== 'manager';
   $('sb-role').textContent = role || '';
   $('sb-approve').hidden = role !== 'manager' || !current || current.status === 'approved';
   $('sb-reopen').hidden = role !== 'manager' || !current || current.status !== 'approved';
@@ -88,9 +89,28 @@ window.addEventListener('sic-local-saved',()=>{
 });
 $('sb-login').addEventListener('submit',async e=>{
   e.preventDefault();
-  const {error}=await sb.auth.signInWithPassword({email:$('sb-email').value.trim(),password:$('sb-password').value});
+  const username=$('sb-email').value.trim();const password=$('sb-password').value;
   $('sb-password').value='';
-  if(error)say('Sign-in failed: '+errText(error));
+  try {
+    const response=await fetch(supabaseUrl+'/functions/v1/username-login',{method:'POST',headers:{'Content-Type':'application/json','apikey':supabasePublishableKey},body:JSON.stringify({username,password})});
+    const result=await response.json();
+    if(!response.ok)throw Error(result.error||'Login failed');
+    const {error}=await sb.auth.setSession({access_token:result.access_token,refresh_token:result.refresh_token});
+    if(error)throw error;
+  }catch(error){say('Sign-in failed: '+errText(error));}
+});
+$('sb-create-user').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(role!=='manager')return;
+  const {data:{session}}=await sb.auth.getSession();
+  if(!session)return;
+  const payload={username:$('sb-new-username').value.trim(),password:$('sb-new-password').value,role:$('sb-new-role').value,display_name:$('sb-new-name').value.trim()};
+  try{
+    const response=await fetch(supabaseUrl+'/functions/v1/manage-staff',{method:'POST',headers:{'Content-Type':'application/json','apikey':supabasePublishableKey,'Authorization':'Bearer '+session.access_token},body:JSON.stringify(payload)});
+    const result=await response.json();
+    if(!response.ok)throw Error(result.error||'Failed to create user');
+    $('sb-new-password').value='';say('Staff account created: '+result.username+' · '+result.role);
+  }catch(error){say('Create user failed: '+errText(error));}
 });
 $('sb-logout').addEventListener('click',async()=>{clearTimeout(saveTimer);await sb.auth.signOut();});
 $('sb-new').addEventListener('click',async()=>{
