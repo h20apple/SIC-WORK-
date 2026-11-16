@@ -76,7 +76,9 @@ async function listSheets() {
   const select = $('sb-sheets');
   select.innerHTML = '<option value="">Choose saved sheet…</option>';
   if (!user || !role) return;
-  const {data,error} = await sb.from('sheets').select('id,sheet_date,status,owner_id,payload').order('updated_at',{ascending:false}).limit(200);
+  let query=sb.from('sheets').select('id,sheet_date,status,owner_id,payload').order('updated_at',{ascending:false}).limit(200);
+  if(!isRossAdmin())query=query.eq('owner_id',user.id);
+  const {data,error} = await query;
   if (error) {say('Could not list sheets: '+errText(error));return null;}
   for (const item of data) {
     const option = document.createElement('option');
@@ -91,7 +93,9 @@ async function loadSheet(id, silent=false) {
   if (current && canEdit()) { const saved = await saveCloud(); if (!saved) return; }
   if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;}
   if (watching) { await sb.removeChannel(watching); watching=null; }
-  const {data,error}=await sb.from('sheets').select('*').eq('id',id).single();
+  let query=sb.from('sheets').select('*').eq('id',id);
+  if(!isRossAdmin())query=query.eq('owner_id',user.id);
+  const {data,error}=await query.single();
   if(error){say('Cannot load sheet: '+errText(error));return;}
   current=data;
   applying=true;
@@ -360,29 +364,23 @@ async function refreshAccount(){
       say('Account is inactive or has no assigned role. Ask your Manager.');
     }else{
       role=data.role;staffDisplayName=(data.display_name||user.email?.split('@')[0]||'').trim();hadSession=true;activeUserId=user.id;
+      // A new login must never inherit a different account's cached sheet.
+      applying=true;
+      window.sicClearPrivate?.();
+      $('sb-area').value='';$('sb-line').value='';
+      applying=false;
       fillSicIdentity(true);
-      say('Signed in as '+role+' · checking cloud sheets…');
+      say('Signed in as '+role+' · checking your saved sheets…');
       const sheets=await listSheets();
       if(sheets){
         if(role==='manager')managerWelcome();
-        const localEntries=hasLocalEntries();
+        // Only load sheets owned by this login. Managers can browse others in the dashboard.
         if(sheets.length){
-          if(localEntries){
-            say('Local data found. Choose a cloud sheet to load, or create a cloud sheet to preserve local work.');
-          }else{
-            await loadSheet(sheets[0].id,true);
-            say('Your latest cloud sheet has loaded automatically on this device.');
-          }
-        }else if(localEntries){
-          say('This device has local SIC data that is not yet in the cloud.');
-          if(confirm('Upload this device\'s existing SIC Sheet to your cloud account so it is available on other devices?')){
-            if(!$('sb-area').value||!$('sb-line').value){say('Choose a deli area and line, then click Create cloud sheet to upload your work.');return;}
-            const payload=sheetPayload();
-            const created=await sb.from('sheets').insert({owner_id:user.id,sheet_date:String(payload.date||''),payload,status:'draft'}).select('id').single();
-            if(created.error)say('Cloud upload failed: '+errText(created.error));
-            else{await listSheets();await loadSheet(created.data.id,true);say('Local SIC Sheet uploaded. It will now be available when you sign in on another device.');}
-          }
-        }else say('No cloud sheets yet. Create a cloud sheet to sync across devices.');
+          await loadSheet(sheets[0].id,true);
+          say('Your latest saved SIC Sheet has loaded.');
+        }else{
+          say('Blank SIC Sheet ready. Choose your Deli and Line, then Create cloud sheet to save.');
+        }
       }
     }
   }else say('Sign in to open your SIC Sheet.');
