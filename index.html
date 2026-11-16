@@ -41,13 +41,14 @@
 .sheet td.circle-cell.circled .circle-toggle{background:#c52222;color:white;border-color:#c52222}
 @media print{.circle-toggle{display:none!important}.sheet td.circle-cell.circled input{outline:2px solid #c52222!important;outline-offset:-5px!important;border-radius:50%!important}}
 
+[hidden]{display:none!important}
 /* Sign-in-first experience: hide the entire SIC form until a verified active role exists. */
 body.auth-locked .toolbar,body.auth-locked .scroll,body.auth-locked .mobile-tip{display:none!important}
 body.auth-locked{background:#eaf0ec;min-height:100dvh}
 body.auth-locked #sb-panel{width:min(420px,calc(100% - 28px));margin:max(40px,12vh) auto 24px;padding:26px!important;border:1px solid #cad9ce!important;border-radius:18px;box-shadow:0 12px 38px #182e2019;background:#fff!important}
 body.auth-locked #sb-panel summary{font-size:20px;line-height:1.35;list-style:none;pointer-events:none}
 body.auth-locked #sb-panel summary::-webkit-details-marker{display:none}
-body.auth-locked #sb-panel #sb-login{display:flex!important;flex-direction:column;gap:12px!important;margin-top:18px}
+body.auth-locked #sb-panel #sb-login:not([hidden]){display:flex!important;flex-direction:column;gap:12px!important;margin-top:18px}
 body.auth-locked #sb-login input{width:100%;padding:14px 12px;border:1px solid #a5b8ac;border-radius:9px;min-height:48px;font-size:16px}
 body.auth-locked #sb-login button{min-height:48px;border:0;border-radius:9px;background:#206744;color:#fff;font-weight:700;font-size:16px}
 body.auth-locked #sb-panel p:last-child{font-size:12px;color:#506358}
@@ -485,6 +486,7 @@ if('serviceWorker' in navigator){
  navigator.serviceWorker.getRegistrations().then(regs=>Promise.all(regs.filter(r=>r.scope.startsWith(location.origin+location.pathname.replace(/[^/]*$/,''))).map(r=>r.unregister()))).catch(()=>{});
 }
 window.sicCloudRead=()=>{save();data.rowCount=body.children.length;return JSON.parse(JSON.stringify(data));};
+window.sicClearPrivate=()=>{data={};body.innerHTML='';document.querySelectorAll('.paper input,.paper textarea').forEach(el=>{el.value='';});try{localStorage.removeItem(KEY)}catch(e){};};
 window.sicCloudApply=payload=>{
  if(!payload||typeof payload!=='object'||Array.isArray(payload))return;
  data=JSON.parse(JSON.stringify(payload));body.innerHTML='';
