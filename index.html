@@ -200,6 +200,37 @@ body.auth-locked #sb-panel p:last-child{font-size:12px;color:#506358}
  .sheet td:nth-child(4) .print-value{font-size:9px!important}
  .sheet td:nth-child(5) .print-value{font-size:8.1px!important}
 }
+
+/* Management review: Redzone is hidden in editor and print, while its
+   underlying calculation remains stored for compatibility with old sheets. */
+.sheet th:nth-child(19),.sheet td:nth-child(19){display:none!important}
+.sheet th:nth-child(4){width:16%!important}
+@media screen {
+ .sheet th:nth-child(1),.sheet th:nth-child(2){width:5%!important}
+ .sheet th:nth-child(3){width:5%!important}
+ .sheet th:nth-child(5){width:6%!important}
+ .sheet th:nth-child(6){width:6%!important}
+ .sheet th:nth-child(7),.sheet th:nth-child(8){width:5%!important}
+ .sheet th:nth-child(9),.sheet th:nth-child(10),.sheet th:nth-child(11){width:5%!important}
+ .sheet th:nth-child(12),.sheet th:nth-child(13){width:4.5%!important}
+ .sheet th:nth-child(14){width:6%!important}
+ .sheet th:nth-child(15),.sheet th:nth-child(16){width:5%!important}
+ .sheet th:nth-child(17){width:7%!important}
+ .sheet th:nth-child(18){width:5%!important}
+}
+@media print{
+ @page{size:A4 landscape;margin:5mm}
+ .sheet th:nth-child(19),.sheet td:nth-child(19){display:none!important}
+ .sheet{width:100%!important;table-layout:fixed!important}
+ .sheet th{font-size:9px!important;line-height:1.15!important;padding:1mm .3mm!important;height:14mm!important;letter-spacing:0!important}
+ .sheet td{height:12mm!important;min-height:12mm!important}
+ .sheet td .print-value{font-size:9.5px!important;line-height:1.2!important;min-height:11mm!important;padding:1mm .4mm!important}
+ .sheet td:nth-child(4) .print-value{font-size:9px!important}
+ .sheet td:nth-child(5) .print-value{font-size:8px!important}
+ .sheet th:nth-child(4){width:16%!important}
+ .instructions{font-size:8px!important;line-height:1.2!important}
+ .footer{margin-top:4mm!important}
+}
 </style></head><body class="auth-locked"><div class="toolbar"><strong>SIC Sheet · v1.2 by Ross Hutton</strong><span class="hint">Tap any box to edit · Saves automatically</span><button id="local-new" onclick="newSheet()">New blank sheet</button><button id="local-add" onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button id="local-restore" onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><style>#sb-panel [hidden]{display:none!important}#sb-panel button{padding:9px;cursor:pointer}#sb-panel input,#sb-panel select{font-size:16px}</style>
 <section id="sb-panel" style="background:#e9f3ee;padding:10px 16px;border-bottom:1px solid #9eb5a5;font:14px Arial">
 <details open><summary style="cursor:pointer;font-weight:bold">☁ Supabase cloud login · <span id="sb-mode">Local sheet · not synced</span></summary>
