@@ -1,6 +1,6 @@
-# Greencore Dispatch SIC Sheet — Project History
+# SIC Sheet — Project History
 
-**Project:** Bo'ness / CCP9 Despatch Short Interval Control (SIC) Sheet  
+**Project:** Despatch Short Interval Control (SIC) Sheet  
 **Developer credit:** Ross Hutton  
 **Repository:** https://github.com/h20apple/SIC-WORK-  
 **Live site:** https://h20apple.github.io/SIC-WORK-/  
@@ -9,7 +9,7 @@
 > This document records requirements, prototypes, changes discussed and verified GitHub actions. A requested or drafted feature is not automatically confirmed as deployed or working on the live website.
 
 ## 24–25 October 2026 — Paper form to digital concept
-- Started from the paper Despatch Short Interval Control (SIC) Sheet used at Bo'ness (CCP9).
+- Started from the paper Despatch Short Interval Control (SIC) Sheet used at the workplace.
 - Goal: retain the original sheet appearance, enable editable entry on iPhone and desktop, and print clearly on A4 landscape.
 - Required columns: Start Time; Finish Time; R-code; Product Description; Date Code; Order Update (Depot); Planned Packs; Packs Produced; LOMA Packs Total; OAL Total Reads; Despatch Waste; Dell Rejects; Dell Burst Packs; Samples/Temp Packs; Units per Tray; Total Trays; Extra Loose Packs; Extra Trays; Comments.
 - Metadata: Date, Dell, Shift, Team Leader, Section Leader/Manager, Line, Actions/Comments, Version and Page.
