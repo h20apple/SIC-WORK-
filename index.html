@@ -328,7 +328,7 @@ function fillProductDefaults(tr){
  const normalized=/^R?\d+$/.test(code)?'R'+code.replace(/^R/,''):code;
  const defaults=PRODUCT_DEFAULTS[normalized];
  if(!defaults)return;
- for(const [col,value] of [[14,defaults.unitsPerTray],[13,defaults.samples]]){
+ for(const [col,value] of [[14,defaults.unitsPerTray]]){
    if(value===undefined||value===null)continue;
    const field=tr.children[col].firstChild;
    const previous=field.dataset.lookupValue||'';
@@ -356,7 +356,7 @@ const head=document.getElementById('head'),body=document.getElementById('rows');
  for(let i=0;i<9;i++)addRow();
  refreshTotals();save();
 }
-function addRow(){let i=body.children.length;let tr=document.createElement('tr');headers.forEach((h,j)=>{let td=document.createElement('td'),inp=document.createElement(j===18?'textarea':'input');inp.setAttribute('aria-label',h+' row '+(i+1));inp.dataset.key='r'+i+'c'+j;inp.value=data[inp.dataset.key]||'';if(j===0||j===1){inp.inputMode='numeric';inp.maxLength=5;inp.placeholder='00:00';inp.addEventListener('input',()=>{inp.value=inp.value.trim()==='='?'=':formatTime(inp.value);refreshTotals();save()})}else if(j===4){inp.inputMode='numeric';inp.maxLength=10;inp.placeholder='DD/MM/YYYY';inp.addEventListener('input',()=>{inp.value=formatDate(inp.value);save()})}else if(j===7||j===17){inp.readOnly=true;inp.tabIndex=-1;inp.title=j===7?'Units per tray × Total trays':'Extra Loose packs ÷ Units per tray';inp.className='calculated'}else{if(j===14||j===15||j===16)inp.inputMode='decimal';inp.addEventListener('input',()=>{if(j===2){
+function addRow(){let i=body.children.length;let tr=document.createElement('tr');headers.forEach((h,j)=>{let td=document.createElement('td'),inp=document.createElement(j===18?'textarea':'input');inp.setAttribute('aria-label',h+' row '+(i+1));inp.dataset.key='r'+i+'c'+j;inp.value=data[inp.dataset.key]||'';if(j===0||j===1){inp.inputMode='numeric';inp.maxLength=5;inp.placeholder='00:00';inp.addEventListener('input',()=>{inp.value=inp.value.trim()==='='?'=':formatTime(inp.value);refreshTotals();save()})}else if(j===4){inp.inputMode='numeric';inp.maxLength=10;inp.placeholder='DD/MM/YYYY';inp.addEventListener('input',()=>{inp.value=formatDate(inp.value);save()})}else if(j===7||j===17){inp.readOnly=true;inp.tabIndex=-1;inp.title=j===7?'Units per tray × Total trays':'Extra Loose packs ÷ Units per tray';inp.className='calculated'}else{if(j===14||j===15||j===16)inp.inputMode='decimal';inp.addEventListener('input',()=>{if(j===13)delete inp.dataset.autoFinishSamples;if(j===2){
  const productField=tr.children[3].firstChild;
  if(productField.dataset.lookupValue && productField.value===productField.dataset.lookupValue)productField.value='';
  const unitField=tr.children[14].firstChild;
@@ -371,6 +371,8 @@ function addRow(){let i=body.children.length;let tr=document.createElement('tr')
 }
 function refreshTotals(){refreshHighlights();
  const trs=[...body.children], groups=[];
+ // Reposition only sample values inserted automatically by this feature.
+ for(const tr of trs){const field=tr.children[13].firstChild;if(field.dataset.autoFinishSamples==='1'){field.value='';delete field.dataset.autoFinishSamples;calculate(tr);}}
  for(let i=0;i<trs.length;i++){
   const cells=trs[i].querySelectorAll('input');
   const continuation=cells[0].value.trim()==='='||cells[1].value.trim()==='=';
@@ -403,6 +405,20 @@ function refreshTotals(){refreshHighlights();
   });
   if(!finished.length)continue;
   const finishIdx=finished[finished.length-1];
+  // Put the automatic sample count on the row that actually finishes the product.
+  // Never overwrite a manually entered sample count.
+  const finishRow=trs[finishIdx];
+  const productCode=group.map(idx=>trs[idx].children[2].firstChild.value.trim().toUpperCase()).find(Boolean)||'';
+  const normalizedCode=/^R?\d+$/.test(productCode)?'R'+productCode.replace(/^R/,''):productCode;
+  const defaultSamples=PRODUCT_DEFAULTS[normalizedCode]?.samples;
+  if(defaultSamples!=null){
+   const sampleField=finishRow.children[13].firstChild;
+   if(!sampleField.value.trim()||sampleField.dataset.autoFinishSamples==='1'){
+    sampleField.value=String(defaultSamples);
+    sampleField.dataset.autoFinishSamples='1';
+    calculate(finishRow);
+   }
+  }
   let total=0, waste=0;
   // Sum the displayed Packs Produced values; extras are included there for non-OC products.
   const productDescription=group.map(idx=>trs[idx].children[3].firstChild.value.trim()).find(Boolean)||'';
