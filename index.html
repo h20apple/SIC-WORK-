@@ -618,10 +618,14 @@ const head=document.getElementById('head'),body=document.getElementById('rows');
  const rows=[...document.querySelectorAll('#rows > tr')];
  let lastUsed=-1;
  rows.forEach((tr,i)=>{
-  const populated=[...tr.querySelectorAll('input,textarea')].some(el=>String(el.value||'').trim()!=='');
+  const populated=[0,1,2,3,4,6,14,15].some(j=>String(tr.children[j]?.querySelector('input')?.value||'').trim()!=='');
   if(populated)lastUsed=i;
  });
- rows.forEach((tr,i)=>{\n  const hide=!!data.endShift&&i>Math.max(0,lastUsed);\n  tr.classList.toggle('end-shift-unused',hide);\n  tr.style.setProperty('display',hide?'none':'','important');\n });
+ rows.forEach((tr,i)=>{
+  const hide=!!data.endShift&&i>Math.max(0,lastUsed);
+  tr.classList.toggle('end-shift-unused',hide);
+  tr.style.setProperty('display',hide?'none':'','important');
+ });
 }
 function endShift(){if(data.endShift){if(!confirm('Remove the end-of-shift marker?'))return;data.endShift=false;}else{if(!confirm('Submit this completed shift for manager review?'))return;data.endShift=true;}renderEndShift();save();window.dispatchEvent(new CustomEvent('sic-end-shift',{detail:{ended:!!data.endShift}}));}
 function newSheet(){
