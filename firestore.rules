@@ -1,0 +1,66 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function profile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    function active() {
+      return signedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && profile().data.active == true;
+    }
+    function role() { return profile().data.role; }
+    function manager() { return active() && role() == 'manager'; }
+    function chargeHand() { return active() && role() == 'chargeHand'; }
+    function supervisor() { return manager() || chargeHand(); }
+    function validSheet() {
+      return request.resource.data.keys().hasOnly([
+        'ownerUid', 'dateKey', 'payload', 'status', 'updatedAt', 'createdAt',
+        'approvedBy', 'approvedAt'
+      ]) &&
+      request.resource.data.ownerUid is string &&
+      request.resource.data.dateKey is string &&
+      request.resource.data.payload is map &&
+      request.resource.data.status in ['draft', 'approved'];
+    }
+    match /users/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || manager());
+      allow list: if manager();
+      // Roles are provisioned by an administrator in the Firebase console
+      // or by a trusted Admin SDK service. Never self-assign roles from the browser.
+      allow create, update, delete: if false;
+    }
+    match /sheets/{sheetId} {
+      allow get, list: if active() &&
+        (supervisor() || resource.data.ownerUid == request.auth.uid);
+      allow create: if active() && validSheet()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.status == 'draft'
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && !request.resource.data.keys().hasAny(['approvedBy', 'approvedAt']);
+      allow update: if active() && validSheet()
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.updatedAt == request.time
+        && (
+          (manager() && (
+            (request.resource.data.status == 'draft'
+              && !request.resource.data.keys().hasAny(['approvedBy', 'approvedAt']))
+            || (request.resource.data.status == 'approved'
+              && request.resource.data.approvedBy == request.auth.uid
+              && request.resource.data.approvedAt == request.time)
+            || (resource.data.status == 'approved'
+              && request.resource.data.status == 'approved'
+              && request.resource.data.approvedBy == resource.data.approvedBy
+              && request.resource.data.approvedAt == resource.data.approvedAt)
+          ))
+          || ((chargeHand() || resource.data.ownerUid == request.auth.uid)
+              && resource.data.status == 'draft'
+              && request.resource.data.status == 'draft'
+              && !request.resource.data.keys().hasAny(['approvedBy', 'approvedAt']))
+        );
+      allow delete: if manager();
+    }
+  }
+}
