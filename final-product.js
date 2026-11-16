@@ -26,6 +26,7 @@ async function list(){
  $('saved').replaceChildren(new Option('Choose saved product…',''));
  for(const row of data){$('saved').add(new Option([row.production_date,row.deli,row.line,row.r_code].join(' · '),row.id));}
  $('saved').value=current?.id||'';
+ $('delete').disabled=!current || !(current.owner_id===user?.id||role==='manager');
  return data;
 }
 function show(row){
@@ -36,6 +37,7 @@ function show(row){
  $('r-code').value=row.r_code;$('total-trays').value=row.total_trays??'';$('burst-packs').value=row.burst_packs??'';
  $('shift').value=p.shift||'';$('sheet-no').value=p.sheet||'';$('sheet-of').value=p.sheetOf||'';
  $('saved').value=row.id;loading=false;
+ $('delete').disabled=!(row.owner_id===user?.id||role==='manager');
  status('Loaded '+row.r_code+' · '+row.deli+' · '+row.line);
 }
 async function save(){
@@ -57,7 +59,7 @@ async function save(){
   status('Saved to cloud · '+row.r_code+' is available for the matching SIC Sheet.');
  }finally{$('save').disabled=false;}
 }
-function reset(){loading=true;current=null;document.querySelectorAll('#work input,#work textarea').forEach(el=>el.value='');document.querySelectorAll('#work select').forEach(el=>el.value='');$('saved').value='';loading=false;status('New product entry ready.');}
+function reset(){loading=true;current=null;$('delete').disabled=true;document.querySelectorAll('#work input,#work textarea').forEach(el=>el.value='');document.querySelectorAll('#work select').forEach(el=>el.value='');$('saved').value='';loading=false;status('New product entry ready.');}
 async function account(){
  const {data:{user:account}}=await sb.auth.getUser();user=account;role=null;
  if(user){
@@ -83,6 +85,16 @@ $('login').addEventListener('submit',async e=>{
 });
 $('logout').addEventListener('click',async()=>{await sb.auth.signOut();user=null;role=null;current=null;await account();});
 $('save').addEventListener('click',save);
+$('delete').addEventListener('click',async()=>{
+ if(!current||!user||!(current.owner_id===user.id||role==='manager'))return;
+ const selected=current;
+ if(!window.confirm('Permanently delete '+selected.r_code+' · '+selected.deli+' · '+selected.line+' · '+selected.production_date+'? This cannot be undone. Any figures already copied into the SIC Sheet will remain there.'))return;
+ $('delete').disabled=true;
+ status('Deleting saved entry…');
+ const {data,error}=await sb.from('final_product_checks').delete().eq('id',selected.id).select('id');
+ if(error||!data?.length){status('Delete failed: '+(error?.message||'Entry not deleted. Check your permissions.'));$('delete').disabled=false;return;}
+ reset();await list();status('Saved Final Product entry permanently deleted. Existing SIC figures were not changed.');
+});
 $('new').addEventListener('click',reset);
 $('print').addEventListener('click',()=>window.print());
 $('refresh').addEventListener('click',list);
