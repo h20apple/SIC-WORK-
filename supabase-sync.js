@@ -9,7 +9,7 @@ const setAccess = allowed => {
   document.querySelector('#sb-panel > details').open = true;
 };
 const errText = e => (e?.message || String(e)).slice(0,180);
-let user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '', refreshing = false, refreshQueued = false, activeUserId = null, saving = Promise.resolve(), hadSession = false;
+let staffDisplayName = '', user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '', refreshing = false, refreshQueued = false, activeUserId = null, saving = Promise.resolve(), hadSession = false;
 function canEdit() {
   return !!(user && role && current && current.status === 'draft' &&
     (role === 'manager' || role === 'charge_hand' || current.owner_id === user.id));
@@ -35,7 +35,19 @@ function showPermissions() {
   $('local-add').disabled = locked || !role;
   $('local-restore').disabled = !!current;
 }
+function fillSicIdentity(onlyEmpty=true){
+  const fields={leader:staffDisplayName,dell:$('sb-area').value,line:$('sb-line').value};
+  for(const [key,value] of Object.entries(fields)){
+    if(!value)continue;
+    const input=document.querySelector('.paper [data-key="'+key+'"]');
+    if(input && (!onlyEmpty||!input.value.trim())){
+      input.value=value;
+      input.dispatchEvent(new Event('input',{bubbles:true}));
+    }
+  }
+}
 function sheetPayload(){
+  fillSicIdentity(true);
   const payload=window.sicCloudRead();
   payload.cloud_username=user?.email?.split('@')[0]||'';
   payload.cloud_area=$('sb-area').value;
@@ -45,6 +57,8 @@ function sheetPayload(){
 function applyLocation(payload){
   $('sb-area').value=payload?.cloud_area||'';
   $('sb-line').value=payload?.cloud_line||'';
+  // Fill missing metadata on older sheets without overwriting recorded leaders.
+  fillSicIdentity(true);
 }
 function hasLocalEntries(){
   const payload=window.sicCloudRead();
@@ -152,6 +166,7 @@ $('sb-new').addEventListener('click',async()=>{
   if(!user||!role)return;
   if(!confirm('Create a cloud sheet from the CURRENT on-screen form?'))return;
   if(!$('sb-area').value||!$('sb-line').value){say('Select a deli area and line before creating a cloud sheet.');return;}
+  fillSicIdentity(true);
   const payload=sheetPayload();
   const {data,error}=await sb.from('sheets').insert({
     owner_id:user.id,sheet_date:String(payload.date||''),payload,status:'draft'
@@ -167,7 +182,7 @@ $('sb-sheets').addEventListener('change',async e=>{
   e.target.value=current?.id || '';
 });
 $('sb-save').addEventListener('click',async()=>{clearTimeout(saveTimer);await saveCloud();await listSheets();});
-for(const id of ['sb-area','sb-line'])$(id).addEventListener('change',()=>{if(current&&canEdit()){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{if(await saveCloud())await listSheets();},500);}});
+for(const id of ['sb-area','sb-line'])$(id).addEventListener('change',()=>{if(!current||canEdit())fillSicIdentity(false);if(current&&canEdit()){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{if(await saveCloud())await listSheets();},500);}});
 $('sb-approve').addEventListener('click',async()=>{
   if(role!=='manager'||!current||!confirm('Approve and lock this sheet?'))return;
   clearTimeout(saveTimer);if(!await saveCloud())return;
@@ -307,19 +322,20 @@ async function refreshAccount(){
   if(authError && !authUser && !/session missing|auth session missing/i.test(authError.message||''))throw authError;
   if(authUser?.id && authUser.id===activeUserId && role){user=authUser;showPermissions();return;}
   if(!authUser && hadSession){window.sicClearPrivate?.();hadSession=false;}
-  if(!authUser){$('manager-dashboard').hidden=true;$('manager-choice').hidden=true;$('sb-panel').hidden=false;document.body.classList.remove('manager-home');}
+  if(!authUser){staffDisplayName='';$('manager-dashboard').hidden=true;$('manager-choice').hidden=true;$('sb-panel').hidden=false;document.body.classList.remove('manager-home');}
   if(watching){await sb.removeChannel(watching);watching=null;}
   clearTimeout(saveTimer);current=null;role=null;lastPayload='';activeUserId=null;
   setAccess(false);
   user=authUser;
   if(user){
-    const {data,error}=await sb.from('profiles').select('role,active').eq('id',user.id).single();
+    const {data,error}=await sb.from('profiles').select('role,active,display_name').eq('id',user.id).single();
     if(error||!data?.active||!['operator','charge_hand','manager'].includes(data.role)){
       user=null;
       await sb.auth.signOut();
       say('Account is inactive or has no assigned role. Ask your Manager.');
     }else{
-      role=data.role;hadSession=true;activeUserId=user.id;
+      role=data.role;staffDisplayName=(data.display_name||user.email?.split('@')[0]||'').trim();hadSession=true;activeUserId=user.id;
+      fillSicIdentity(true);
       say('Signed in as '+role+' · checking cloud sheets…');
       const sheets=await listSheets();
       if(sheets){
