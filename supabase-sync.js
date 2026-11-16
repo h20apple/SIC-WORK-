@@ -20,6 +20,8 @@ function showPermissions() {
   $('sb-account').hidden = !user || !role;
   $('sb-identity').textContent = user?.email?.split('@')[0] || '';
   $('sb-staff-admin').hidden = role !== 'manager';
+  $('manager-dashboard-button').hidden = role !== 'manager';
+  $('manager-dashboard-shortcut').hidden = role !== 'manager' || managerView==='dashboard';
   $('sb-role').textContent = role || '';
   $('sb-approve').hidden = role !== 'manager' || !current || current.status === 'approved';
   $('sb-reopen').hidden = role !== 'manager' || !current || current.status !== 'approved';
@@ -200,6 +202,8 @@ $('sb-reopen').addEventListener('click',async()=>{
 
 let managerView='sheet',managerTab='overview',managerSheets=[],managerProfiles=[];
 const mdEl=(tag,content,cls)=>{const el=document.createElement(tag);if(content!==undefined)el.textContent=String(content);if(cls)el.className=cls;return el;};
+$('manager-dashboard-button').addEventListener('click',()=>managerSwitch('dashboard'));
+$('manager-cloud-dashboard-button').addEventListener('click',()=>managerSwitch('dashboard'));
 function managerSwitch(view){
  if(role!=='manager')return;
  managerView=view;
@@ -207,6 +211,7 @@ function managerSwitch(view){
  $('manager-dashboard').hidden=view!=='dashboard';
  $('manager-choice').hidden=true;
  $('sb-panel').hidden=view==='dashboard';
+ $('manager-dashboard-shortcut').hidden=view==='dashboard';
  if(view==='dashboard')refreshManager();
 }
 function managerWelcome(){
@@ -323,7 +328,7 @@ async function refreshAccount(){
   if(authError && !authUser && !/session missing|auth session missing/i.test(authError.message||''))throw authError;
   if(authUser?.id && authUser.id===activeUserId && role){user=authUser;showPermissions();return;}
   if(!authUser && hadSession){window.sicClearPrivate?.();hadSession=false;}
-  if(!authUser){window.sicSignedInIdentity=null;staffDisplayName='';$('manager-dashboard').hidden=true;$('manager-choice').hidden=true;$('sb-panel').hidden=false;document.body.classList.remove('manager-home');}
+  if(!authUser){$('manager-dashboard-button').hidden=true;$('manager-dashboard-shortcut').hidden=true;managerView='sheet';window.sicSignedInIdentity=null;staffDisplayName='';$('manager-dashboard').hidden=true;$('manager-choice').hidden=true;$('sb-panel').hidden=false;document.body.classList.remove('manager-home');}
   if(watching){await sb.removeChannel(watching);watching=null;}
   clearTimeout(saveTimer);current=null;role=null;lastPayload='';activeUserId=null;
   setAccess(false);
