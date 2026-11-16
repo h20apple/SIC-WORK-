@@ -68,7 +68,7 @@ async function loadSheet(id, silent=false) {
     event:'UPDATE',schema:'public',table:'sheets',filter:'id=eq.'+id
   },async () => {
     if (applying) return;
-    if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;await saveCloud();}
+    if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;if(!await saveCloud())return;}
     const result=await sb.from('sheets').select('*').eq('id',id).single();
     if(result.error || !result.data || current?.id !== id)return;
     const incoming=JSON.stringify(result.data.payload || {});
@@ -124,7 +124,7 @@ $('sb-create-user').addEventListener('submit',async e=>{
     $('sb-new-password').value='';say('Staff account created: '+result.username+' · '+result.role);
   }catch(error){say('Create user failed: '+errText(error));}
 });
-$('sb-logout').addEventListener('click',async()=>{clearTimeout(saveTimer);await sb.auth.signOut();});
+$('sb-logout').addEventListener('click',async()=>{clearTimeout(saveTimer);if(current && canEdit() && !await saveCloud()){say('Save failed. Please save a backup before signing out.');return;}await sb.auth.signOut();});
 $('sb-new').addEventListener('click',async()=>{
   if(!user||!role)return;
   if(!confirm('Create a cloud sheet from the CURRENT on-screen form?'))return;
@@ -146,13 +146,13 @@ $('sb-save').addEventListener('click',async()=>{clearTimeout(saveTimer);await sa
 $('sb-approve').addEventListener('click',async()=>{
   if(role!=='manager'||!current||!confirm('Approve and lock this sheet?'))return;
   clearTimeout(saveTimer);if(!await saveCloud())return;
-  const {error}=await sb.from('sheets').update({status:'approved'}).eq('id',current.id);
+  const {error}=await sb.from('sheets').update({status:'approved'}).eq('id',current.id).eq('status','draft');
   if(error){say('Approval failed: '+errText(error));return;}
   await loadSheet(current.id,true);
 });
 $('sb-reopen').addEventListener('click',async()=>{
   if(role!=='manager'||!current||!confirm('Reopen this approved sheet?'))return;
-  const {error}=await sb.from('sheets').update({status:'draft'}).eq('id',current.id);
+  const {error}=await sb.from('sheets').update({status:'draft'}).eq('id',current.id).eq('status','approved');
   if(error){say('Reopen failed: '+errText(error));return;}
   await loadSheet(current.id,true);
 });
