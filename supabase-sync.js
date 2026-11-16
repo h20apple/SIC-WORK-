@@ -6,6 +6,7 @@ const $ = id => document.getElementById(id);
 const say = msg => { $('sb-status').textContent = msg; };
 const setAccess = allowed => {
   document.body.classList.toggle('auth-locked', !allowed);
+  document.body.classList.toggle('operator-restricted', role === 'operator');
   document.querySelector('#sb-panel > details').open = true;
 };
 const isRossAdmin = () => !!user && (user.email||'').split('@')[0].toLowerCase()==='rossadmin';
@@ -13,11 +14,11 @@ const errText = e => (e?.message || String(e)).slice(0,180);
 let autoCreateBusy=false, deliPromptShown=false;
 let staffDisplayName = '', user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '', refreshing = false, refreshQueued = false, activeUserId = null, saving = Promise.resolve(), hadSession = false;
 function canEdit() {
-  return !!(user && role && current && current.status === 'draft' &&
+  return !!(user && (role==='charge_hand'||role==='manager') && current && current.status === 'draft' &&
     (role === 'manager' || role === 'charge_hand' || current.owner_id === user.id));
 }
 function showPermissions() {
-  setAccess(!!(user && role));
+  setAccess(!!(user && role && role!=='operator'));
   $('sb-login').hidden = !!(user && role);
   $('sb-account').hidden = !user || !role;
   $('sb-identity').textContent = user?.email?.split('@')[0] || '';
@@ -78,7 +79,7 @@ function hasLocalEntries(){
 async function listSheets() {
   const select = $('sb-sheets');
   select.innerHTML = '<option value="">Choose saved sheet…</option>';
-  if (!user || !role) return;
+  if (!user || !role || role==='operator') return;
   let query=sb.from('sheets').select('id,sheet_date,status,owner_id,payload').order('updated_at',{ascending:false}).limit(200);
   if(role==='operator')query=query.eq('owner_id',user.id);
   const {data,error} = await query;
@@ -92,6 +93,7 @@ async function listSheets() {
   return data;
 }
 async function loadSheet(id, silent=false) {
+  if(role!=='charge_hand'&&role!=='manager'){say('SIC access is restricted to Charge Hands and Managers.');return;}
   if (!silent && !confirm('Open cloud sheet? Current on-screen values will be replaced. Save a JSON backup first if needed.')) return;
   if (current && canEdit()) { const saved = await saveCloud(); if (!saved) return; }
   if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;}
@@ -206,7 +208,7 @@ async function saveCloud() {
 window.addEventListener('sic-manager-highlight',async()=>{if(!current||!canEdit())return;clearTimeout(saveTimer);if(await saveCloud())say('Manager highlight saved to cloud');});
 window.addEventListener('sic-end-shift',async()=>{if(!current){say('End of shift marked locally. Create a cloud sheet to submit it for manager review.');return;}clearTimeout(saveTimer);if(await saveCloud())say('End of shift saved. Managers can now review this sheet in their dashboard.');});
 async function createAutoSheet(){
- if(autoCreateBusy||current||!user||!role||!hasLocalEntries())return;
+ if(autoCreateBusy||current||!user||!['charge_hand','manager'].includes(role)||!hasLocalEntries())return;
  if(!$('sb-area').value){
   if(!deliPromptShown){
    deliPromptShown=true;
@@ -460,6 +462,11 @@ async function refreshAccount(){
       $('sb-area').value='';$('sb-line').value='';
       applying=false;
       window.sicCloudApply?.({});
+      if(role==='operator'){
+        say('Operator account · SIC Sheet access is restricted to Charge Hands and Managers.');
+        showPermissions();
+        return;
+      }
       fillSicIdentity(true);
       say('Signed in as '+role+' · checking your saved sheets…');
       const sheets=await listSheets();
