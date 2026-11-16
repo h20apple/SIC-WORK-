@@ -231,6 +231,16 @@ body.auth-locked #sb-panel p:last-child{font-size:12px;color:#506358}
  .instructions{font-size:8px!important;line-height:1.2!important}
  .footer{margin-top:4mm!important}
 }
+
+/* Compact management A4 print typography: preserve columns and data. */
+@media print {
+ .sheet th{font-size:7.5px!important;line-height:1.15!important}
+ .sheet td .print-value{font-size:8px!important;line-height:1.18!important}
+ .sheet td:nth-child(4) .print-value{font-size:7.7px!important}
+ .sheet td:nth-child(5) .print-value{font-size:7px!important}
+ .sheet td{height:10mm!important;min-height:10mm!important}
+ .sheet td .print-value{min-height:9mm!important}
+}
 </style></head><body class="auth-locked"><div class="toolbar"><strong>SIC Sheet · v1.2 by Ross Hutton</strong><span class="hint">Tap any box to edit · Saves automatically</span><button id="local-new" onclick="newSheet()">New blank sheet</button><button id="local-add" onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button id="local-restore" onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><style>#sb-panel [hidden]{display:none!important}#sb-panel button{padding:9px;cursor:pointer}#sb-panel input,#sb-panel select{font-size:16px}</style>
 <section id="sb-panel" style="background:#e9f3ee;padding:10px 16px;border-bottom:1px solid #9eb5a5;font:14px Arial">
 <details open><summary style="cursor:pointer;font-weight:bold">☁ Supabase cloud login · <span id="sb-mode">Local sheet · not synced</span></summary>
