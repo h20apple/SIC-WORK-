@@ -35,6 +35,17 @@ function showPermissions() {
   $('local-add').disabled = locked || !role;
   $('local-restore').disabled = !!current;
 }
+function sheetPayload(){
+  const payload=window.sicCloudRead();
+  payload.cloud_username=user?.email?.split('@')[0]||'';
+  payload.cloud_area=$('sb-area').value;
+  payload.cloud_line=$('sb-line').value;
+  return payload;
+}
+function applyLocation(payload){
+  $('sb-area').value=payload?.cloud_area||'';
+  $('sb-line').value=payload?.cloud_line||'';
+}
 function hasLocalEntries(){
   const payload=window.sicCloudRead();
   return Object.entries(payload).some(([key,value])=>/^r\d+c\d+$/.test(key)&&String(value||'').trim()!=='') || Boolean(String(payload.date||'').trim());
@@ -43,11 +54,11 @@ async function listSheets() {
   const select = $('sb-sheets');
   select.innerHTML = '<option value="">Choose saved sheet…</option>';
   if (!user || !role) return;
-  const {data,error} = await sb.from('sheets').select('id,sheet_date,status,owner_id').order('updated_at',{ascending:false}).limit(200);
+  const {data,error} = await sb.from('sheets').select('id,sheet_date,status,owner_id,payload').order('updated_at',{ascending:false}).limit(200);
   if (error) {say('Could not list sheets: '+errText(error));return null;}
   for (const item of data) {
     const option = document.createElement('option');
-    option.value=item.id;option.textContent=(item.sheet_date||'Undated')+' · '+item.status+' · '+item.id.slice(0,8);
+    option.value=item.id;option.textContent=[item.payload?.cloud_username||'Unknown user',item.sheet_date||'Undated',[item.payload?.cloud_area,item.payload?.cloud_line].filter(Boolean).join(' / ')||'Area not set',item.status].join(' · ');
     select.append(option);
   }
   select.value=current?.id || '';
@@ -63,6 +74,7 @@ async function loadSheet(id, silent=false) {
   current=data;
   applying=true;
   window.sicCloudApply(data.payload || {});
+  applyLocation(data.payload);
   applying=false;
   lastPayload=JSON.stringify(data.payload || {});
   showPermissions();
@@ -74,12 +86,12 @@ async function loadSheet(id, silent=false) {
   },async () => {
     if (applying) return;
     if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;if(!await saveCloud())return;}
-    if (JSON.stringify(window.sicCloudRead())!==lastPayload) {say('Remote change detected. Save a backup of your unsaved changes before reloading.');return;}
+    if (JSON.stringify(sheetPayload())!==lastPayload) {say('Remote change detected. Save a backup of your unsaved changes before reloading.');return;}
     const result=await sb.from('sheets').select('*').eq('id',id).single();
     if(result.error || !result.data || current?.id !== id)return;
     const incoming=JSON.stringify(result.data.payload || {});
     current=result.data;
-    if(incoming!==lastPayload){applying=true;window.sicCloudApply(result.data.payload||{});applying=false;lastPayload=incoming;}
+    if(incoming!==lastPayload){applying=true;window.sicCloudApply(result.data.payload||{});applyLocation(result.data.payload);applying=false;lastPayload=incoming;}
     showPermissions();
     say('Cloud sheet updated · '+current.status);
   }).subscribe();
@@ -87,7 +99,7 @@ async function loadSheet(id, silent=false) {
 async function saveCloud() {
   if(!canEdit() || applying)return true;
   const sheetId=current.id;
-  const payload=window.sicCloudRead();
+  const payload=sheetPayload();
   const serialized=JSON.stringify(payload);
   if(serialized===lastPayload)return true;
   say('Saving to cloud…');
@@ -139,7 +151,8 @@ $('sb-logout').addEventListener('click',async()=>{clearTimeout(saveTimer);if(cur
 $('sb-new').addEventListener('click',async()=>{
   if(!user||!role)return;
   if(!confirm('Create a cloud sheet from the CURRENT on-screen form?'))return;
-  const payload=window.sicCloudRead();
+  if(!$('sb-area').value||!$('sb-line').value){say('Select a deli area and line before creating a cloud sheet.');return;}
+  const payload=sheetPayload();
   const {data,error}=await sb.from('sheets').insert({
     owner_id:user.id,sheet_date:String(payload.date||''),payload,status:'draft'
   }).select('id').single();
@@ -153,7 +166,8 @@ $('sb-sheets').addEventListener('change',async e=>{
   await loadSheet(id);
   e.target.value=current?.id || '';
 });
-$('sb-save').addEventListener('click',async()=>{clearTimeout(saveTimer);await saveCloud();});
+$('sb-save').addEventListener('click',async()=>{clearTimeout(saveTimer);await saveCloud();await listSheets();});
+for(const id of ['sb-area','sb-line'])$(id).addEventListener('change',()=>{if(current&&canEdit()){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{if(await saveCloud())await listSheets();},500);}});
 $('sb-approve').addEventListener('click',async()=>{
   if(role!=='manager'||!current||!confirm('Approve and lock this sheet?'))return;
   clearTimeout(saveTimer);if(!await saveCloud())return;
@@ -201,7 +215,8 @@ async function refreshAccount(){
         }else if(localEntries){
           say('This device has local SIC data that is not yet in the cloud.');
           if(confirm('Upload this device\'s existing SIC Sheet to your cloud account so it is available on other devices?')){
-            const payload=window.sicCloudRead();
+            if(!$('sb-area').value||!$('sb-line').value){say('Choose a deli area and line, then click Create cloud sheet to upload your work.');return;}
+            const payload=sheetPayload();
             const created=await sb.from('sheets').insert({owner_id:user.id,sheet_date:String(payload.date||''),payload,status:'draft'}).select('id').single();
             if(created.error)say('Cloud upload failed: '+errText(created.error));
             else{await listSheets();await loadSheet(created.data.id,true);say('Local SIC Sheet uploaded. It will now be available when you sign in on another device.');}
