@@ -267,6 +267,33 @@ body.auth-locked #sb-panel p:last-child{font-size:12px;color:#506358}
  .sheet th{font-size:7px!important;line-height:1.18!important;padding:.6mm .2mm!important}
  .sheet th:nth-child(7),.sheet th:nth-child(8),.sheet th:nth-child(9),.sheet th:nth-child(10),.sheet th:nth-child(11),.sheet th:nth-child(12),.sheet th:nth-child(13){font-size:6.5px!important}
 }
+
+/* Wider production metrics, narrower wrapping product description. */
+@media screen,print{
+ .sheet th:nth-child(1){width:4.555%!important}
+ .sheet th:nth-child(2){width:4.555%!important}
+ .sheet th:nth-child(3){width:4.757%!important}
+ .sheet th:nth-child(4){width:12.146%!important}
+ .sheet th:nth-child(5){width:6.174%!important}
+ .sheet th:nth-child(6){width:5.364%!important}
+ .sheet th:nth-child(7){width:5.567%!important}
+ .sheet th:nth-child(8){width:6.174%!important}
+ .sheet th:nth-child(9){width:5.466%!important}
+ .sheet th:nth-child(10){width:4.555%!important}
+ .sheet th:nth-child(11){width:5.769%!important}
+ .sheet th:nth-child(12){width:5.061%!important}
+ .sheet th:nth-child(13){width:5.061%!important}
+ .sheet th:nth-child(14){width:5.364%!important}
+ .sheet th:nth-child(15){width:4.555%!important}
+ .sheet th:nth-child(16){width:4.555%!important}
+ .sheet th:nth-child(17){width:6.073%!important}
+ .sheet th:nth-child(18){width:4.251%!important}
+ .sheet th:nth-child(19),.sheet td:nth-child(19){display:none!important}
+ .sheet td:nth-child(4) .print-value{white-space:pre-wrap!important;overflow-wrap:break-word!important;word-break:normal!important}
+}
+@media screen{
+ .sheet td:nth-child(4) input{white-space:normal!important;overflow-wrap:break-word!important;font-size:11px!important}
+}
 </style></head><body class="auth-locked"><div class="toolbar"><strong>SIC Sheet · v1.2 by Ross Hutton</strong><span class="hint">Tap any box to edit · Saves automatically</span><button id="local-new" onclick="newSheet()">New blank sheet</button><button id="local-add" onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button id="local-restore" onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><style>#sb-panel [hidden]{display:none!important}#sb-panel button{padding:9px;cursor:pointer}#sb-panel input,#sb-panel select{font-size:16px}</style>
 <section id="sb-panel" style="background:#e9f3ee;padding:10px 16px;border-bottom:1px solid #9eb5a5;font:14px Arial">
 <details open><summary style="cursor:pointer;font-weight:bold">☁ Supabase cloud login · <span id="sb-mode">Local sheet · not synced</span></summary>
