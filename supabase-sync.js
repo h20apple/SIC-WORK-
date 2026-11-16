@@ -79,7 +79,7 @@ async function listSheets() {
   select.innerHTML = '<option value="">Choose saved sheet…</option>';
   if (!user || !role) return;
   let query=sb.from('sheets').select('id,sheet_date,status,owner_id,payload').order('updated_at',{ascending:false}).limit(200);
-  if(!isRossAdmin())query=query.eq('owner_id',user.id);
+  if(role==='operator')query=query.eq('owner_id',user.id);
   const {data,error} = await query;
   if (error) {say('Could not list sheets: '+errText(error));return null;}
   for (const item of data) {
@@ -96,7 +96,7 @@ async function loadSheet(id, silent=false) {
   if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;}
   if (watching) { await sb.removeChannel(watching); watching=null; }
   let query=sb.from('sheets').select('*').eq('id',id);
-  if(!isRossAdmin())query=query.eq('owner_id',user.id);
+  if(role==='operator')query=query.eq('owner_id',user.id);
   const {data,error}=await query.single();
   if(error){say('Cannot load sheet: '+errText(error));return;}
   current=data;
@@ -379,11 +379,12 @@ async function refreshAccount(){
       if(sheets){
         if(role==='manager')managerWelcome();
         // Only load sheets owned by this login. Managers can browse others in the dashboard.
-        if(sheets.length){
-          await loadSheet(sheets[0].id,true);
+        const ownSheets=sheets.filter(item=>item.owner_id===user.id);
+        if(ownSheets.length){
+          await loadSheet(ownSheets[0].id,true);
           say('Your latest saved SIC Sheet has loaded.');
         }else{
-          say('Blank SIC Sheet ready. Choose your Deli and Line, then Create cloud sheet to save.');
+          say('Blank SIC Sheet ready. Choose your Deli and Line, then Create cloud sheet to save. Charge Hands can select shared sheets from the saved sheets menu.');
         }
       }
     }
