@@ -625,7 +625,7 @@ function expandDepotOrder(value){
  const qty=match[1],prefix=match[2].toUpperCase().replace(/\./g,'');
  const found=DOLLY_DEPOTS.filter(([code,name])=>code.startsWith(prefix)||name.toUpperCase().replace(/[^A-Z]/g,'').startsWith(prefix));
  if(found.length!==1)return raw; // Ambiguous prefixes (B, C) remain unchanged.
- return qty+' '+found[0][1];
+ return qty+' '+(found[0][0]==='CUMBERNAULD'?'Cumb':found[0][1]);
 }
 function addRow(){let i=body.children.length;let tr=document.createElement('tr');headers.forEach((h,j)=>{let td=document.createElement('td'),inp=document.createElement(j===18?'textarea':'input');inp.setAttribute('aria-label',h+' row '+(i+1));inp.dataset.key='r'+i+'c'+j;inp.value=data[inp.dataset.key]||'';if(j===0||j===1){inp.inputMode='numeric';inp.maxLength=5;inp.placeholder='00:00';inp.addEventListener('input',()=>{inp.value=inp.value.trim()==='='?'=':formatTime(inp.value);refreshTotals();save()})}else if(j===4){inp.inputMode='numeric';inp.maxLength=10;inp.placeholder='DD/MM/YYYY';inp.addEventListener('input',()=>{inp.value=formatDate(inp.value);save()})}else if(j===5){
  inp.autocomplete='off';inp.placeholder='e.g. 36E, 36BR';
