@@ -58,9 +58,9 @@ function fillSicIdentity(onlyEmpty=true){
   }
 }
 function sheetPayload(){
-  fillSicIdentity(true);
+  if(!current)fillSicIdentity(true);
   const payload=window.sicCloudRead();
-  payload.cloud_username=user?.email?.split('@')[0]||'';
+  payload.cloud_username=current?.payload?.cloud_username||user?.email?.split('@')[0]||'';
   payload.cloud_area=$('sb-area').value;
   payload.cloud_line=$('sb-line').value;
   return payload;
@@ -68,8 +68,8 @@ function sheetPayload(){
 function applyLocation(payload){
   $('sb-area').value=payload?.cloud_area||'';
   $('sb-line').value=payload?.cloud_line||'';
-  // Fill missing metadata on older sheets without overwriting recorded leaders.
-  fillSicIdentity(true);
+  // Do not replace the recorded leader with the viewer's identity.
+  window.sicSignedInIdentity=null;
 }
 function hasLocalEntries(){
   const payload=window.sicCloudRead();
@@ -112,18 +112,39 @@ async function loadSheet(id, silent=false) {
   // Subscribe to changes from other devices. Realtime requires publication enabled.
   watching=sb.channel('sic-sheet-'+id).on('postgres_changes',{
     event:'UPDATE',schema:'public',table:'sheets',filter:'id=eq.'+id
-  },async () => {
-    if (applying) return;
-    if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;if(!await saveCloud())return;}
-    if (JSON.stringify(sheetPayload())!==lastPayload) {say('Remote change detected. Save a backup of your unsaved changes before reloading.');return;}
-    const result=await sb.from('sheets').select('*').eq('id',id).single();
-    if(result.error || !result.data || current?.id !== id)return;
-    const incoming=JSON.stringify(result.data.payload || {});
-    current=result.data;
-    if(incoming!==lastPayload){applying=true;window.sicCloudApply(result.data.payload||{});applyLocation(result.data.payload);applying=false;lastPayload=incoming;}
-    showPermissions();
-    say('Cloud sheet updated · '+current.status);
-  }).subscribe();
+  },async()=>{await refreshOpenSheet();}).subscribe();
+
+}
+// Refresh a shared sheet without clobbering local unsaved entries.
+let cloudRefreshBusy=false;
+async function refreshOpenSheet(){
+ if(cloudRefreshBusy||applying||!current||!user)return;
+ cloudRefreshBusy=true;
+ try{
+  const id=current.id;
+  if(saveTimer){clearTimeout(saveTimer);saveTimer=null;if(!await saveCloud())return;}
+  await saving;
+  if(current?.id!==id)return;
+  const local=sheetPayload();
+  if(JSON.stringify(local)!==lastPayload){
+   say('Unsaved changes detected. Save sheet before refreshing.');
+   return;
+  }
+  const {data:remote,error}=await sb.from('sheets').select('*').eq('id',id).single();
+  if(error||!remote||current?.id!==id)return;
+  if(JSON.stringify(sheetPayload())!==lastPayload)return;
+  const incoming=JSON.stringify(remote.payload||{});
+  if(incoming!==lastPayload){
+   applying=true;
+   try{
+    window.sicCloudApply(remote.payload||{});
+    applyLocation(remote.payload||{});
+   }finally{applying=false;}
+  }
+  current=remote;lastPayload=incoming;showPermissions();
+  if(incoming!==JSON.stringify(local))say('Cloud highlights and sheet updates received');
+ }catch(error){say('Refresh failed: '+errText(error));}
+ finally{cloudRefreshBusy=false;}
 }
 async function saveCloud() {
   if(!canEdit() || applying)return true;
@@ -424,31 +445,7 @@ async function refreshAccount(){
   }
 }
 // Two-minute cloud refresh: never replace unsaved edits or change the selected sheet.
-let periodicSyncBusy=false;
-setInterval(async()=>{
- if(periodicSyncBusy||!user||!role||!current||applying)return;
- if(document.visibilityState==='hidden')return;
- periodicSyncBusy=true;
- try{
-  if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}
-  if(!await saveCloud())return;
-  await saving;
-  const id=current?.id;
-  if(!id)return;
-  const {data:remote,error}=await sb.from('sheets').select('*').eq('id',id).single();
-  if(error||!remote||current?.id!==id)return;
-  // A new edit may have occurred during the fetch; preserve it for the next sync.
-  if(JSON.stringify(sheetPayload())!==lastPayload)return;
-  const incoming=JSON.stringify(remote.payload||{});
-  if(incoming!==lastPayload){
-   applying=true;
-   try{window.sicCloudApply(remote.payload||{});applyLocation(remote.payload);}
-   finally{applying=false;}
-   say('Sheet refreshed from cloud');
-  }
-  current=remote;lastPayload=incoming;showPermissions();
- }catch(error){say('Cloud refresh delayed: '+errText(error));}
- finally{periodicSyncBusy=false;}
-},120000);
+setInterval(()=>{if(document.visibilityState!=='hidden')refreshOpenSheet();},120000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refreshOpenSheet();});
 sb.auth.onAuthStateChange((event,_session)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='INITIAL_SESSION')setTimeout(()=>refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));}),0);});
 refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));});
