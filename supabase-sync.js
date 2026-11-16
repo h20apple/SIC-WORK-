@@ -33,6 +33,7 @@ function showPermissions() {
   $('sb-approve').hidden = role !== 'manager' || !current || current.status === 'approved';
   $('sb-reopen').hidden = role !== 'manager' || !current || current.status !== 'approved';
   $('sb-save').disabled = !canEdit();
+  $('sb-new').disabled = !['charge_hand','manager'].includes(role);
   window.sicManagerReviewMode=!!(role==='manager'&&current&&current.status==='draft');
   $('end-shift-button').disabled=!!current&&!canEdit();
   $('sb-mode').textContent = current ? (canEdit() ? 'Cloud draft · editable' : 'Cloud sheet · read-only') : 'Local sheet · not synced';
@@ -326,7 +327,7 @@ $('sb-create-user').addEventListener('submit',async e=>{
 });
 $('sb-logout').addEventListener('click',async()=>{clearTimeout(saveTimer);if(current && canEdit() && !await saveCloud()){say('Save failed. Please save a backup before signing out.');return;}if(!current && !confirm('Any local-only sheet on this device will be cleared when you sign out. Export a backup first. Continue?'))return;const {error}=await sb.auth.signOut();if(error)say('Sign-out failed: '+errText(error));});
 $('sb-new').addEventListener('click',async()=>{
-  if(!user||!role)return;
+  if(!user||!['charge_hand','manager'].includes(role)){say('Operators use the Final Product Sheet.');return;}
   if(!confirm('Create a cloud sheet from the CURRENT on-screen form?'))return;
   if(!$('sb-area').value||!$('sb-line').value){say('Select a deli area and line before creating a cloud sheet.');return;}
   fillSicIdentity(true);
@@ -500,7 +501,7 @@ async function refreshAccount(){
   try {
   const {data:{user:authUser},error:authError}=await sb.auth.getUser();
   if(authError && !authUser && !/session missing|auth session missing/i.test(authError.message||''))throw authError;
-  if(authUser?.id && authUser.id===activeUserId && role){user=authUser;showPermissions();return;}
+  if(authUser?.id && authUser.id===activeUserId && role){user=authUser;if(role==='operator'){window.location.replace('./final-product.html');return;}showPermissions();return;}
   if(!authUser && hadSession){window.sicClearPrivate?.();hadSession=false;}
   if(!authUser){$('manager-dashboard-button').hidden=true;$('manager-dashboard-shortcut').hidden=true;managerView='sheet';window.sicSignedInIdentity=null;staffDisplayName='';$('manager-dashboard').hidden=true;$('manager-choice').hidden=true;$('sb-panel').hidden=false;document.body.classList.remove('manager-home');}
   if(watching){await sb.removeChannel(watching);watching=null;}
