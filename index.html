@@ -620,9 +620,9 @@ const DOLLY_DEPOTS=[['ROI','R.O.I'],['NI','NI'],['ENFIELD','Enfield'],['FAVERSHA
 function expandDepotOrder(value){
  const raw=String(value||'').trim();
  // Accept 36E, 36 E, 36BR, 36 BA, 36ROI, etc.
- const match=raw.match(/^(\\d+)\\s*[- ]?\\s*([a-z.]+)$/i);
+ const match=raw.match(/^(\d+)\s*[- ]?\s*([a-z.]+)$/i);
  if(!match)return raw;
- const qty=match[1],prefix=match[2].toUpperCase().replace(/\\./g,'');
+ const qty=match[1],prefix=match[2].toUpperCase().replace(/\./g,'');
  const found=DOLLY_DEPOTS.filter(([code,name])=>code.startsWith(prefix)||name.toUpperCase().replace(/[^A-Z]/g,'').startsWith(prefix));
  if(found.length!==1)return raw; // Ambiguous prefixes (B, C) remain unchanged.
  return qty+' '+found[0][1];
@@ -632,6 +632,7 @@ function addRow(){let i=body.children.length;let tr=document.createElement('tr')
  inp.addEventListener('change',()=>{const expanded=expandDepotOrder(inp.value);if(expanded!==inp.value){inp.value=expanded;save();}});
  inp.addEventListener('blur',()=>{const expanded=expandDepotOrder(inp.value);if(expanded!==inp.value){inp.value=expanded;save();}});
  inp.addEventListener('input',save);
+ inp.addEventListener('keydown',event=>{if(event.key==='Enter'){event.preventDefault();inp.blur();}});
  }else if(j===7||j===17){inp.readOnly=true;inp.tabIndex=-1;inp.title=j===7?'Units per tray × Total trays':'Extra Loose packs ÷ Units per tray';inp.className='calculated'}else{if(j===14||j===15||j===16)inp.inputMode='decimal';inp.addEventListener('input',()=>{if(j===13)delete inp.dataset.autoFinishSamples;if(j===2){
  const productField=tr.children[3].firstChild;
  if(productField.dataset.lookupValue && productField.value===productField.dataset.lookupValue)productField.value='';
