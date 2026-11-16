@@ -10,6 +10,7 @@ const setAccess = allowed => {
 };
 const isRossAdmin = () => !!user && (user.email||'').split('@')[0].toLowerCase()==='rossadmin';
 const errText = e => (e?.message || String(e)).slice(0,180);
+let autoCreateBusy=false, deliPromptShown=false;
 let staffDisplayName = '', user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '', refreshing = false, refreshQueued = false, activeUserId = null, saving = Promise.resolve(), hadSession = false;
 function canEdit() {
   return !!(user && role && current && current.status === 'draft' &&
@@ -143,10 +144,37 @@ async function saveCloud() {
   saving=result.then(()=>{},()=>{});
   return result;
 }
+window.addEventListener('sic-manager-highlight',async()=>{if(!current||!canEdit())return;clearTimeout(saveTimer);if(await saveCloud())say('Manager highlight saved to cloud');});
 window.addEventListener('sic-end-shift',async()=>{if(!current){say('End of shift marked locally. Create a cloud sheet to submit it for manager review.');return;}clearTimeout(saveTimer);if(await saveCloud())say('End of shift saved. Managers can now review this sheet in their dashboard.');});
+async function createAutoSheet(){
+ if(autoCreateBusy||current||!user||!role||!hasLocalEntries())return;
+ if(!$('sb-area').value){
+  if(!deliPromptShown){
+   deliPromptShown=true;
+   say('Choose Deli 1, 2 or 3 above to automatically save this sheet.');
+   $('sb-area').focus();
+  }
+  return;
+ }
+ if(!$('sb-line').value){say('Choose the production Line above to start autosaving.');$('sb-line').focus();return;}
+ autoCreateBusy=true;
+ try{
+  fillSicIdentity(true);
+  const payload=sheetPayload();
+  const {data,error}=await sb.from('sheets').insert({owner_id:user.id,sheet_date:String(payload.date||''),payload,status:'draft'}).select('*').single();
+  if(error){say('Auto-create failed: '+errText(error));return;}
+  current=data;lastPayload=JSON.stringify(payload);
+  showPermissions();
+  await listSheets();
+  await loadSheet(data.id,true);
+  say('Cloud sheet created · autosave enabled');
+ }finally{autoCreateBusy=false;}
+}
 window.addEventListener('sic-local-saved',()=>{
-  if(!canEdit()||applying)return;
+  if(applying||!user||!role)return;
   clearTimeout(saveTimer);
+  if(!current){saveTimer=setTimeout(createAutoSheet,650);return;}
+  if(!canEdit())return;
   saveTimer=setTimeout(saveCloud,1200);
 });
 $('sb-login').addEventListener('submit',async e=>{
@@ -197,7 +225,7 @@ $('sb-sheets').addEventListener('change',async e=>{
   e.target.value=current?.id || '';
 });
 $('sb-save').addEventListener('click',async()=>{clearTimeout(saveTimer);await saveCloud();await listSheets();});
-for(const id of ['sb-area','sb-line'])$(id).addEventListener('change',()=>{if(!current||canEdit())fillSicIdentity(false);if(current&&canEdit()){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{if(await saveCloud())await listSheets();},500);}});
+for(const id of ['sb-area','sb-line'])$(id).addEventListener('change',()=>{if(!current){deliPromptShown=false;createAutoSheet();}if(!current||canEdit())fillSicIdentity(false);if(current&&canEdit()){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{if(await saveCloud())await listSheets();},500);}});
 $('sb-approve').addEventListener('click',async()=>{
   if(role!=='manager'||!current||!confirm('Approve and lock this sheet?'))return;
   clearTimeout(saveTimer);if(!await saveCloud())return;
@@ -368,7 +396,7 @@ async function refreshAccount(){
     }else{
       role=data.role;staffDisplayName=(data.display_name||user.email?.split('@')[0]||'').trim();hadSession=true;activeUserId=user.id;
       // A new login must never inherit a different account's cached sheet.
-      applying=true;
+      applying=true;deliPromptShown=false;
       window.sicClearPrivate?.();
       $('sb-area').value='';$('sb-line').value='';
       applying=false;
