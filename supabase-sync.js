@@ -8,6 +8,7 @@ const setAccess = allowed => {
   document.body.classList.toggle('auth-locked', !allowed);
   document.querySelector('#sb-panel > details').open = true;
 };
+const isRossAdmin = () => !!user && (user.email||'').split('@')[0].toLowerCase()==='rossadmin';
 const errText = e => (e?.message || String(e)).slice(0,180);
 let staffDisplayName = '', user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '', refreshing = false, refreshQueued = false, activeUserId = null, saving = Promise.resolve(), hadSession = false;
 function canEdit() {
@@ -19,7 +20,10 @@ function showPermissions() {
   $('sb-login').hidden = !!(user && role);
   $('sb-account').hidden = !user || !role;
   $('sb-identity').textContent = user?.email?.split('@')[0] || '';
-  $('sb-staff-admin').hidden = role !== 'manager';
+  $('sb-staff-admin').hidden = !isRossAdmin();
+  $('md-accounts-tab').hidden = !isRossAdmin();
+  // Keep cloud syncing active, but reserve the Supabase control panel for rossadmin.
+  $('sb-panel').hidden = !!(user && role) && (!isRossAdmin() || managerView==='dashboard');
   $('manager-dashboard-button').hidden = role !== 'manager';
   $('manager-dashboard-shortcut').hidden = role !== 'manager' || managerView==='dashboard';
   $('sb-role').textContent = role || '';
@@ -200,7 +204,7 @@ $('sb-reopen').addEventListener('click',async()=>{
   await loadSheet(current.id,true);
 });
 
-let managerView='sheet',managerTab='overview',managerSheets=[],managerProfiles=[];
+let managerView='sheet',managerTab='overview',managerSheets=[],managerProfiles=[],managerArea=null,managerLine=null;
 const mdEl=(tag,content,cls)=>{const el=document.createElement(tag);if(content!==undefined)el.textContent=String(content);if(cls)el.className=cls;return el;};
 $('manager-dashboard-button').addEventListener('click',()=>managerSwitch('dashboard'));
 $('manager-cloud-dashboard-button').addEventListener('click',()=>managerSwitch('dashboard'));
@@ -210,10 +214,17 @@ function managerSwitch(view){
  document.body.classList.toggle('manager-home',view==='dashboard');
  $('manager-dashboard').hidden=view!=='dashboard';
  $('manager-choice').hidden=true;
- $('sb-panel').hidden=view==='dashboard';
+ $('sb-panel').hidden=view==='dashboard'||!isRossAdmin();
  $('manager-dashboard-shortcut').hidden=view==='dashboard';
- if(view==='dashboard')refreshManager();
+ if(view==='dashboard'){managerArea=null;managerLine=null;setManagerSubpage(false);refreshManager();}
 }
+function setManagerSubpage(open){
+ $('md-back').hidden=!open;
+ $('md-summary').hidden=open;
+ $('md-areas').hidden=open;
+ $('md-tabs').hidden=open;
+}
+$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;setManagerSubpage(false);drawManagerOverview();});
 function managerWelcome(){
  // Managers can open the dashboard from the toolbar at any time.
  // Do not interrupt their SIC Sheet with a login choice overlay.
@@ -224,7 +235,9 @@ $('md-choose-sheet').addEventListener('click',()=>managerSwitch('sheet'));
 $('md-open-sheet').addEventListener('click',()=>managerSwitch('sheet'));
 $('md-refresh').addEventListener('click',()=>refreshManager());
 document.querySelectorAll('[data-md-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+ if(btn.dataset.mdTab==='accounts'&&!isRossAdmin())return;
  managerTab=btn.dataset.mdTab;
+ setManagerSubpage(true);
  for(const name of ['overview','audit','accounts'])$('md-'+name).hidden=name!==managerTab;
  document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab===managerTab)));
  refreshManager();
@@ -241,6 +254,8 @@ function managerName(id){const p=managerProfiles.find(x=>x.id===id);return p?.di
 function sheetArea(s){return s.payload?.cloud_area||'Unassigned';}
 function sheetLine(s){return s.payload?.cloud_line||'Unassigned';}
 function drawManagerOverview(area=null,line=null){
+ managerArea=area;managerLine=line;
+ setManagerSubpage(!!(area&&line));
  const summary=$('md-summary'),areas=$('md-areas'),recent=$('md-recent');
  summary.replaceChildren();areas.replaceChildren();recent.replaceChildren();
  for(const [name,value] of [['Production lines',12],['Cloud sheets',managerSheets.length],['Draft sheets',managerSheets.filter(s=>s.status==='draft').length]]){
@@ -271,6 +286,7 @@ async function managerRequest(body){
 }
 async function drawManagerAccounts(){
  const root=$('md-account-list');root.replaceChildren();
+ if(!isRossAdmin()){root.append(mdEl('p','Account administration is reserved for rossadmin.'));return;}
  let data;
  try{data=(await managerRequest({action:'list_accounts'})).accounts||[];}
  catch(error){root.append(mdEl('p','Unable to load accounts: '+errText(error)));return;}
@@ -314,7 +330,7 @@ async function refreshManager(){
   if(profileError)throw profileError;managerProfiles=profiles||[];
   const {data,error}=await sb.from('sheets').select('id,owner_id,sheet_date,status,payload,updated_at').order('updated_at',{ascending:false}).limit(500);
   if(error)throw error;managerSheets=data||[];
-  drawManagerOverview();
+  drawManagerOverview(managerArea,managerLine);
   if(managerTab==='audit')await drawManagerAudit();
   if(managerTab==='accounts')await drawManagerAccounts();
   $('md-status').textContent='Last refreshed '+new Date().toLocaleTimeString('en-GB');
