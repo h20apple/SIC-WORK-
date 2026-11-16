@@ -297,14 +297,14 @@ body.auth-locked #sb-panel p:last-child{font-size:12px;color:#506358}
 </style></head><body class="auth-locked"><div class="toolbar"><strong>SIC Sheet · v1.2 by Ross Hutton</strong><span class="hint">Tap any box to edit · Saves automatically</span><button id="manager-dashboard-button" type="button" hidden aria-label="Open Manager Dashboard">📊 Dashboard</button><button id="local-new" onclick="newSheet()">New blank sheet</button><button id="local-add" onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button id="local-restore" onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><style>#sb-panel [hidden]{display:none!important}#sb-panel button{padding:9px;cursor:pointer}#sb-panel input,#sb-panel select{font-size:16px}</style>
 <div id="manager-dashboard-shortcut" hidden style="background:#e9f3ee;padding:8px 16px"><button type="button" id="manager-cloud-dashboard-button" style="background:#164e45;color:white;border:0;border-radius:8px;padding:10px 14px;font-weight:bold">📊 Open Manager Dashboard</button></div>
 <section id="sb-panel" style="background:#e9f3ee;padding:10px 16px;border-bottom:1px solid #9eb5a5;font:14px Arial">
-<details open><summary style="cursor:pointer;font-weight:bold">☁ Supabase cloud login · <span id="sb-mode">Local sheet · not synced</span></summary>
+<details open><summary id="sb-admin-heading" style="cursor:pointer;font-weight:bold">☁ Supabase cloud login · <span id="sb-mode">Local sheet · not synced</span></summary>
 <p id="sb-status" role="status" aria-live="polite">Checking your sign-in…</p>
 <form id="sb-login" style="display:flex;flex-wrap:wrap;gap:8px"><input id="sb-email" type="text" autocomplete="username" placeholder="Username" required><input id="sb-password" type="password" autocomplete="current-password" placeholder="Password" required><button type="submit">Sign in</button></form>
 <div id="sb-account" hidden><p><strong id="sb-identity"></strong> · Role: <strong id="sb-role"></strong></p>
 <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">
 <label>Area <select id="sb-area" aria-label="Deli area"><option value="">Select deli…</option><option value="Deli 1">Deli 1</option><option value="Deli 2">Deli 2</option><option value="Deli 3">Deli 3</option></select></label><label>Line <select id="sb-line" aria-label="Production line"><option value="">Select line…</option><option value="Line 1">Line 1</option><option value="Line 2">Line 2</option><option value="Line 3">Line 3</option><option value="Line 4">Line 4</option></select></label>
 <select id="sb-sheets" aria-label="Saved cloud sheets"><option value="">Choose saved sheet…</option></select>
-<button type="button" id="sb-new">Create cloud sheet</button><button type="button" id="sb-save">Save now</button>
+<button type="button" id="sb-new">Create cloud sheet</button><button type="button" id="sb-save">💾 Save sheet</button>
 <button type="button" id="sb-approve" hidden>Approve &amp; lock</button><button type="button" id="sb-reopen" hidden>Reopen</button>
 <button type="button" id="sb-logout">Sign out</button></div>
 <details id="sb-staff-admin" hidden style="margin-top:12px"><summary>Create staff account (Managers only)</summary>
@@ -318,6 +318,8 @@ body.auth-locked #sb-panel p:last-child{font-size:12px;color:#506358}
 </details></div>
 <p style="font-size:12px">Your existing local sheet stays on this device until you choose Create cloud sheet. Back up before opening a different sheet.</p></details></section><style>
 body.manager-home .toolbar,body.manager-home .mobile-tip,body.manager-home .scroll{display:none!important}
+#sb-panel.staff-mode #sb-admin-heading{display:none!important}
+#sb-panel.staff-mode{background:#eef5f0!important}
 #manager-dashboard[hidden],#manager-choice[hidden],#manager-dashboard [hidden]{display:none!important}
 #manager-dashboard{font:14px Arial,sans-serif;background:#eef3f6;min-height:80vh;padding:18px;color:#142536}
 #manager-dashboard .md-shell{max-width:1100px;margin:auto}
@@ -807,4 +809,4 @@ window.sicCloudApply=payload=>{
  }
  refreshTotals();save();
 };
-</script><script type="module" src="./supabase-sync.js?v=20261116-navigation6"></script></body></html>
+</script><script type="module" src="./supabase-sync.js?v=20261116-navigation7"></script></body></html>
