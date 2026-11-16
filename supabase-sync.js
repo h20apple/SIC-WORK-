@@ -181,6 +181,123 @@ $('sb-reopen').addEventListener('click',async()=>{
   if(error){say('Reopen failed: '+errText(error));return;}
   await loadSheet(current.id,true);
 });
+
+let managerView='sheet',managerTab='overview',managerSheets=[],managerProfiles=[];
+const mdEl=(tag,content,cls)=>{const el=document.createElement(tag);if(content!==undefined)el.textContent=String(content);if(cls)el.className=cls;return el;};
+function managerSwitch(view){
+ if(role!=='manager')return;
+ managerView=view;
+ document.body.classList.toggle('manager-home',view==='dashboard');
+ $('manager-dashboard').hidden=view!=='dashboard';
+ $('manager-choice').hidden=true;
+ $('sb-panel').hidden=view==='dashboard';
+ if(view==='dashboard')refreshManager();
+}
+function managerWelcome(){
+ if(role!=='manager')return;
+ $('manager-choice').hidden=false;
+}
+$('md-choose-dashboard').addEventListener('click',()=>managerSwitch('dashboard'));
+$('md-choose-sheet').addEventListener('click',()=>managerSwitch('sheet'));
+$('md-open-sheet').addEventListener('click',()=>managerSwitch('sheet'));
+$('md-refresh').addEventListener('click',()=>refreshManager());
+document.querySelectorAll('[data-md-tab]').forEach(btn=>btn.addEventListener('click',()=>{
+ managerTab=btn.dataset.mdTab;
+ for(const name of ['overview','audit','accounts'])$('md-'+name).hidden=name!==managerTab;
+ document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab===managerTab)));
+ refreshManager();
+}));
+function managerButton(label,handler){const b=mdEl('button',label);b.type='button';b.addEventListener('click',handler);return b;}
+function managerTable(headers,rows){
+ const table=mdEl('table',undefined,'md-table'),head=mdEl('tr');
+ for(const h of headers)head.append(mdEl('th',h));
+ table.append(head);
+ for(const row of rows){const tr=mdEl('tr');for(const val of row){const td=mdEl('td');if(val instanceof Node)td.append(val);else td.textContent=String(val??'');tr.append(td);}table.append(tr);}
+ return table;
+}
+function managerName(id){const p=managerProfiles.find(x=>x.id===id);return p?.display_name||id?.slice(0,8)||'Unknown';}
+function sheetArea(s){return s.payload?.cloud_area||'Unassigned';}
+function sheetLine(s){return s.payload?.cloud_line||'Unassigned';}
+function drawManagerOverview(area=null,line=null){
+ const summary=$('md-summary'),areas=$('md-areas'),recent=$('md-recent');
+ summary.replaceChildren();areas.replaceChildren();recent.replaceChildren();
+ for(const [name,value] of [['Production lines',12],['Cloud sheets',managerSheets.length],['Draft sheets',managerSheets.filter(s=>s.status==='draft').length]]){
+  const c=mdEl('div',undefined,'md-card');c.append(mdEl('div',name),mdEl('h2',value));summary.append(c);
+ }
+ for(let d=1;d<=3;d++){
+  const areaName='Deli '+d,c=mdEl('div',undefined,'md-card');c.append(mdEl('h3',areaName));
+  const grid=mdEl('div',undefined,'md-lines');
+  for(let l=1;l<=4;l++){const lineName='Line '+l,matching=managerSheets.filter(s=>sheetArea(s)===areaName&&sheetLine(s)===lineName);
+   grid.append(managerButton(lineName+' · '+matching.length,()=>drawManagerOverview(areaName,lineName)));
+  }c.append(grid);areas.append(c);
+ }
+ $('md-selected-title').textContent=area&&line?area+' / '+line+' · Saved sheets':'Recent sheets';
+ const chosen=managerSheets.filter(s=>(!area||sheetArea(s)===area)&&(!line||sheetLine(s)===line)).slice(0,50);
+ if(!chosen.length){recent.append(mdEl('p','No saved sheets for this selection.'));return;}
+ recent.append(managerTable(['Date','Area / line','Owner','Status','Open'],chosen.map(item=>[
+  item.sheet_date||'Undated',sheetArea(item)+' / '+sheetLine(item),item.payload?.cloud_username||managerName(item.owner_id),item.status,
+  managerButton('View sheet',async()=>{managerSwitch('sheet');await loadSheet(item.id,true);})
+ ])));
+}
+async function managerRequest(body){
+ const {data:{session}}=await sb.auth.getSession();
+ if(!session)throw Error('Session expired');
+ const response=await fetch(supabaseUrl+'/functions/v1/manage-staff',{method:'POST',headers:{'Content-Type':'application/json','apikey':supabasePublishableKey,'Authorization':'Bearer '+session.access_token},body:JSON.stringify(body)});
+ const result=await response.json();
+ if(!response.ok)throw Error(result.error||'Account update failed');
+ return result;
+}
+async function drawManagerAccounts(){
+ const root=$('md-account-list');root.replaceChildren();
+ const {data,error}=await sb.from('profiles').select('id,display_name,role,active').order('display_name').limit(300);
+ if(error){root.append(mdEl('p','Unable to load accounts: '+errText(error)));return;}
+ managerProfiles=data||[];
+ for(const profile of managerProfiles){
+  const c=mdEl('div',undefined,'md-card');c.style.marginBottom='10px';
+  c.append(mdEl('strong',profile.display_name||profile.id.slice(0,8)),mdEl('p',profile.role+' · '+(profile.active?'Active':'Inactive')));
+  const actions=mdEl('div',undefined,'md-action');
+  const roleSelect=mdEl('select');for(const roleName of ['operator','charge_hand','manager']){const opt=mdEl('option',roleName.replace('_',' '));opt.value=roleName;opt.selected=roleName===profile.role;roleSelect.append(opt);}
+  actions.append(roleSelect,managerButton('Save role',async()=>{
+   if(!confirm('Change this account role?'))return;
+   try{await managerRequest({action:'update_account',user_id:profile.id,role:roleSelect.value});await refreshManager();}catch(e){$('md-status').textContent=errText(e);}
+  }),managerButton(profile.active?'Deactivate':'Activate',async()=>{
+   if(!confirm((profile.active?'Deactivate':'Activate')+' this account?'))return;
+   try{await managerRequest({action:'update_account',user_id:profile.id,active:!profile.active});await refreshManager();}catch(e){$('md-status').textContent=errText(e);}
+  }),managerButton('Reset password',async()=>{
+   const password=prompt('Enter a NEW temporary password (at least 12 characters). It will not be displayed later.');
+   if(password===null)return;
+   if(password.length<12){$('md-status').textContent='Password must have at least 12 characters.';return;}
+   if(!confirm('Reset password for this account?'))return;
+   try{await managerRequest({action:'reset_password',user_id:profile.id,password});$('md-status').textContent='Password reset completed.';}catch(e){$('md-status').textContent=errText(e);}
+  }));
+  c.append(actions);root.append(c);
+ }
+}
+async function drawManagerAudit(){
+ const root=$('md-audit-list');root.replaceChildren();
+ const {data,error}=await sb.from('sic_audit_logs').select('created_at,actor_id,action,sheet_id,details').order('created_at',{ascending:false}).limit(150);
+ if(error){root.append(mdEl('p','Unable to load audit logs: '+errText(error)));return;}
+ if(!data?.length){root.append(mdEl('p','No audit events recorded yet.'));return;}
+ root.append(managerTable(['When','Account','Action','Details'],data.map(item=>[
+  new Date(item.created_at).toLocaleString('en-GB'),managerName(item.actor_id),item.action,
+  [item.details?.area,item.details?.line,item.details?.date,item.details?.username,item.sheet_id?.slice(0,8)].filter(Boolean).join(' · ')
+ ])));
+}
+async function refreshManager(){
+ if(role!=='manager')return;
+ $('md-status').textContent='Loading manager information…';
+ try{
+  const {data:profiles,error:profileError}=await sb.from('profiles').select('id,display_name,role,active').limit(300);
+  if(profileError)throw profileError;managerProfiles=profiles||[];
+  const {data,error}=await sb.from('sheets').select('id,owner_id,sheet_date,status,payload,updated_at').order('updated_at',{ascending:false}).limit(500);
+  if(error)throw error;managerSheets=data||[];
+  drawManagerOverview();
+  if(managerTab==='audit')await drawManagerAudit();
+  if(managerTab==='accounts')await drawManagerAccounts();
+  $('md-status').textContent='Last refreshed '+new Date().toLocaleTimeString('en-GB');
+ }catch(e){$('md-status').textContent='Dashboard error: '+errText(e);}
+}
+
 async function refreshAccount(){
   if(refreshing){refreshQueued=true;return;}
   refreshing=true;
@@ -189,6 +306,7 @@ async function refreshAccount(){
   if(authError && !authUser && !/session missing|auth session missing/i.test(authError.message||''))throw authError;
   if(authUser?.id && authUser.id===activeUserId && role){user=authUser;showPermissions();return;}
   if(!authUser && hadSession){window.sicClearPrivate?.();hadSession=false;}
+  if(!authUser){$('manager-dashboard').hidden=true;$('manager-choice').hidden=true;$('sb-panel').hidden=false;document.body.classList.remove('manager-home');}
   if(watching){await sb.removeChannel(watching);watching=null;}
   clearTimeout(saveTimer);current=null;role=null;lastPayload='';activeUserId=null;
   setAccess(false);
@@ -204,6 +322,7 @@ async function refreshAccount(){
       say('Signed in as '+role+' · checking cloud sheets…');
       const sheets=await listSheets();
       if(sheets){
+        if(role==='manager')managerWelcome();
         const localEntries=hasLocalEntries();
         if(sheets.length){
           if(localEntries){
