@@ -9,7 +9,7 @@ const setAccess = allowed => {
   document.querySelector('#sb-panel > details').open = true;
 };
 const errText = e => (e?.message || String(e)).slice(0,180);
-let user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '';
+let user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '', refreshing = false, activeUserId = null, saving = Promise.resolve();
 function canEdit() {
   return !!(user && role && current && current.status === 'draft' &&
     (role === 'manager' || role === 'charge_hand' || current.owner_id === user.id));
@@ -50,7 +50,8 @@ async function listSheets() {
 }
 async function loadSheet(id, silent=false) {
   if (!silent && !confirm('Open cloud sheet? Current on-screen values will be replaced. Save a JSON backup first if needed.')) return;
-  if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;await saveCloud();}
+  if (current && canEdit()) { const saved = await saveCloud(); if (!saved) return; }
+  if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;}
   if (watching) { await sb.removeChannel(watching); watching=null; }
   const {data,error}=await sb.from('sheets').select('*').eq('id',id).single();
   if(error){say('Cannot load sheet: '+errText(error));return;}
@@ -78,14 +79,20 @@ async function loadSheet(id, silent=false) {
   }).subscribe();
 }
 async function saveCloud() {
-  if(!canEdit() || applying)return;
+  if(!canEdit() || applying)return true;
+  const sheetId=current.id;
   const payload=window.sicCloudRead();
   const serialized=JSON.stringify(payload);
-  if(serialized===lastPayload)return;
-  const {error}=await sb.from('sheets').update({payload,sheet_date:String(payload.date||'')}).eq('id',current.id);
-  if(error){say('Save failed: '+errText(error));return;}
-  lastPayload=serialized;
-  say('Saved to Supabase');
+  if(serialized===lastPayload)return true;
+  const task = async () => {
+    const {data,error}=await sb.from('sheets').update({payload,sheet_date:String(payload.date||'')}).eq('id',sheetId).eq('status','draft').select('id');
+    if(error || !data?.length){say('Save failed: '+(error?errText(error):'Sheet is locked or unavailable'));return false;}
+    if(current?.id===sheetId)lastPayload=serialized;
+    say('Saved to Supabase');return true;
+  };
+  const result=saving.then(task,task);
+  saving=result.then(()=>{},()=>{});
+  return result;
 }
 window.addEventListener('sic-local-saved',()=>{
   if(!canEdit()||applying)return;
@@ -138,7 +145,7 @@ $('sb-sheets').addEventListener('change',async e=>{
 $('sb-save').addEventListener('click',async()=>{clearTimeout(saveTimer);await saveCloud();});
 $('sb-approve').addEventListener('click',async()=>{
   if(role!=='manager'||!current||!confirm('Approve and lock this sheet?'))return;
-  clearTimeout(saveTimer);await saveCloud();
+  clearTimeout(saveTimer);if(!await saveCloud())return;
   const {error}=await sb.from('sheets').update({status:'approved'}).eq('id',current.id);
   if(error){say('Approval failed: '+errText(error));return;}
   await loadSheet(current.id,true);
@@ -150,10 +157,15 @@ $('sb-reopen').addEventListener('click',async()=>{
   await loadSheet(current.id,true);
 });
 async function refreshAccount(){
+  if(refreshing)return;
+  refreshing=true;
+  try {
+  const {data:{user:authUser},error:authError}=await sb.auth.getUser();
+  if(authError && !authUser)throw authError;
+  if(authUser?.id && authUser.id===activeUserId && role){user=authUser;showPermissions();return;}
   if(watching){await sb.removeChannel(watching);watching=null;}
-  clearTimeout(saveTimer);current=null;role=null;lastPayload='';
+  clearTimeout(saveTimer);current=null;role=null;lastPayload='';activeUserId=null;
   setAccess(false);
-  const {data:{user:authUser}}=await sb.auth.getUser();
   user=authUser;
   if(user){
     const {data,error}=await sb.from('profiles').select('role,active').eq('id',user.id).single();
@@ -161,9 +173,10 @@ async function refreshAccount(){
       user=null;
       await sb.auth.signOut();
       say('Account is inactive or has no assigned role. Ask your Manager.');
-    }else{role=data.role;say('Signed in as '+role+' · choose or create a cloud sheet');await listSheets();}
+    }else{role=data.role;activeUserId=user.id;say('Signed in as '+role+' · choose or create a cloud sheet');await listSheets();}
   }else say('Sign in to open your SIC Sheet.');
   showPermissions();
+  } finally {refreshing=false;}
 }
-sb.auth.onAuthStateChange((_event,_session)=>{setTimeout(refreshAccount,0);});
+sb.auth.onAuthStateChange((event,_session)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='INITIAL_SESSION')setTimeout(()=>refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));}),0);});
 refreshAccount().catch(error=>{setAccess(false);say('Could not verify login: '+errText(error));});
