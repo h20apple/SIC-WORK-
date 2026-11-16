@@ -57,10 +57,9 @@ function fillSicIdentity(onlyEmpty=true){
   }
 }
 function sheetPayload(){
-  if(!current)fillSicIdentity(true);
+  fillSicIdentity(true);
   const payload=window.sicCloudRead();
-  // Reviewers must not replace the original operator's identity or assignment.
-  payload.cloud_username=current?.payload?.cloud_username||user?.email?.split('@')[0]||'';
+  payload.cloud_username=user?.email?.split('@')[0]||'';
   payload.cloud_area=$('sb-area').value;
   payload.cloud_line=$('sb-line').value;
   return payload;
@@ -69,7 +68,7 @@ function applyLocation(payload){
   $('sb-area').value=payload?.cloud_area||'';
   $('sb-line').value=payload?.cloud_line||'';
   // Fill missing metadata on older sheets without overwriting recorded leaders.
-  if(!current)fillSicIdentity(true);
+  fillSicIdentity(true);
 }
 function hasLocalEntries(){
   const payload=window.sicCloudRead();
@@ -112,69 +111,37 @@ async function loadSheet(id, silent=false) {
   // Subscribe to changes from other devices. Realtime requires publication enabled.
   watching=sb.channel('sic-sheet-'+id).on('postgres_changes',{
     event:'UPDATE',schema:'public',table:'sheets',filter:'id=eq.'+id
-  },async()=>{
-    if(applying||current?.id!==id)return;
-    // Wait for queued local writes before applying a remote update.
-    if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}
-    if(!await saveCloud())return;
-    await saving;
+  },async () => {
+    if (applying) return;
+    if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;if(!await saveCloud())return;}
+    if (JSON.stringify(sheetPayload())!==lastPayload) {say('Remote change detected. Save a backup of your unsaved changes before reloading.');return;}
     const result=await sb.from('sheets').select('*').eq('id',id).single();
-    if(result.error||!result.data||current?.id!==id)return;
-    const incoming=JSON.stringify(result.data.payload||{});
-    if(incoming!==lastPayload){
-      applying=true;
-      try{window.sicCloudApply(result.data.payload||{});applyLocation(result.data.payload);}
-      finally{applying=false;}
-    }
+    if(result.error || !result.data || current?.id !== id)return;
+    const incoming=JSON.stringify(result.data.payload || {});
     current=result.data;
-    lastPayload=incoming;
+    if(incoming!==lastPayload){applying=true;window.sicCloudApply(result.data.payload||{});applyLocation(result.data.payload);applying=false;lastPayload=incoming;}
     showPermissions();
     say('Cloud sheet updated · '+current.status);
   }).subscribe();
 }
 async function saveCloud() {
- if(!canEdit()||applying)return true;
- const sheetId=current.id;
- const task=async()=>{
-  if(current?.id!==sheetId)return false;
-  let local=sheetPayload();
-  if(JSON.stringify(local)===lastPayload)return true;
+  if(!canEdit() || applying)return true;
+  const sheetId=current.id;
+  const payload=sheetPayload();
+  const serialized=JSON.stringify(payload);
+  if(serialized===lastPayload)return true;
   say('Saving to cloud…');
-  for(let attempt=0;attempt<3;attempt++){
-   if(current?.id!==sheetId)return false;
-   const base=current.payload||{};
-   const expected=current.updated_at;
-   const {data:updated,error}=await sb.from('sheets').update({payload:local,sheet_date:String(local.date||'')}).eq('id',sheetId).eq('status','draft').eq('updated_at',expected).select('id,updated_at');
-   if(error){say('Save failed: '+errText(error));return false;}
-   if(updated?.length){
-    current.updated_at=updated[0].updated_at;current.payload=local;lastPayload=JSON.stringify(local);
+  const task = async () => {
+    const expectedVersion=current?.id===sheetId?current.updated_at:null;
+    if(!expectedVersion)return false;
+    const {data,error}=await sb.from('sheets').update({payload,sheet_date:String(payload.date||'')}).eq('id',sheetId).eq('status','draft').eq('updated_at',expectedVersion).select('id,updated_at');
+    if(error || !data?.length){say('Save blocked: '+(error?errText(error):'Another device changed this sheet. Save a JSON backup before reloading.'));return false;}
+    if(current?.id===sheetId){lastPayload=serialized;current.updated_at=data[0].updated_at;current.payload=payload;}
     say('Saved to Supabase');return true;
-   }
-   const {data:remote,error:fetchError}=await sb.from('sheets').select('*').eq('id',sheetId).single();
-   if(fetchError||!remote||remote.status!=='draft'){say('Sheet changed or locked. Save a backup before continuing.');return false;}
-   const remotePayload=remote.payload||{};
-   const merged={...remotePayload};
-   const conflicts=[];
-   for(const key of new Set([...Object.keys(base),...Object.keys(local)])){
-    const before=JSON.stringify(base[key]??null),mine=JSON.stringify(local[key]??null),theirs=JSON.stringify(remotePayload[key]??null);
-    if(mine===before)continue;
-    if(theirs!==before&&theirs!==mine){conflicts.push(key);continue;}
-    if(Object.hasOwn(local,key))merged[key]=local[key];else delete merged[key];
-   }
-   if(conflicts.length){
-    say('Save conflict in '+conflicts.slice(0,3).join(', ')+'. Both devices edited the same field. Save a backup before reloading.');
-    return false;
-   }
-   current.updated_at=remote.updated_at;current.payload=remotePayload;lastPayload=JSON.stringify(remotePayload);
-   // Apply the merged result so remote edits remain visible without losing local edits.
-   applying=true;window.sicCloudApply(merged);applyLocation(merged);applying=false;
-   local=sheetPayload();
-  }
-  say('Save delayed by simultaneous edits. Please try Save sheet again.');return false;
- };
- const result=saving.then(task,task);
- saving=result.then(()=>{},()=>{});
- return result;
+  };
+  const result=saving.then(task,task);
+  saving=result.then(()=>{},()=>{});
+  return result;
 }
 window.addEventListener('sic-end-shift',async()=>{if(!current){say('End of shift marked locally. Create a cloud sheet to submit it for manager review.');return;}clearTimeout(saveTimer);if(await saveCloud())say('End of shift saved. Managers can now review this sheet in their dashboard.');});
 window.addEventListener('sic-local-saved',()=>{
