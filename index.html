@@ -122,6 +122,39 @@ body.auth-locked #sb-panel p:last-child{font-size:12px;color:#506358}
  .sheet td .print-value{font-size:8px!important;word-break:normal!important}
  .sheet td:nth-child(4) .print-value{font-size:8px!important}
 }
+
+/* Print-safe A4 geometry: use a single width budget across all 19 columns. */
+@media print {
+ @page{size:A4 landscape;margin:5mm}
+ html,body{width:auto!important;max-width:none!important;margin:0!important;padding:0!important}
+ .paper{width:100%!important;max-width:100%!important;padding:0!important;margin:0!important}
+ .sheet{width:100%!important;max-width:100%!important;table-layout:fixed!important;border-collapse:collapse!important}
+ .sheet th:nth-child(1){width:4.327%!important}
+.sheet th:nth-child(2){width:4.327%!important}
+.sheet th:nth-child(3){width:4.519%!important}
+.sheet th:nth-child(4){width:13.462%!important}
+.sheet th:nth-child(5){width:5.865%!important}
+.sheet th:nth-child(6){width:5.096%!important}
+.sheet th:nth-child(7){width:4.712%!important}
+.sheet th:nth-child(8){width:5.000%!important}
+.sheet th:nth-child(9){width:4.423%!important}
+.sheet th:nth-child(10){width:4.327%!important}
+.sheet th:nth-child(11){width:4.808%!important}
+.sheet th:nth-child(12){width:4.038%!important}
+.sheet th:nth-child(13){width:4.808%!important}
+.sheet th:nth-child(14){width:5.096%!important}
+.sheet th:nth-child(15){width:4.327%!important}
+.sheet th:nth-child(16){width:4.327%!important}
+.sheet th:nth-child(17){width:5.769%!important}
+.sheet th:nth-child(18){width:4.038%!important}
+.sheet th:nth-child(19){width:6.731%!important}
+ .sheet th{font-family:Arial,Helvetica,sans-serif!important;font-size:7.3px!important;line-height:1.2!important;letter-spacing:-.08px!important;white-space:normal!important;word-break:keep-all!important;overflow-wrap:normal!important;hyphens:none!important;padding:1mm .15mm!important}
+ .sheet th .print-heading{font-size:inherit!important;line-height:inherit!important}
+ .sheet td .print-value{font-size:7.7px!important;line-height:1.2!important;overflow-wrap:break-word!important;word-break:normal!important}
+ .sheet td:nth-child(5) .print-value{font-size:7px!important;white-space:nowrap!important;letter-spacing:-.15px!important}
+ .sheet td:nth-child(4) .print-value{font-size:7.4px!important}
+ .sheet td:nth-child(19) .print-value{font-size:7px!important}
+}
 </style></head><body class="auth-locked"><div class="toolbar"><strong>SIC Sheet · v1.2 by Ross Hutton</strong><span class="hint">Tap any box to edit · Saves automatically</span><button id="local-new" onclick="newSheet()">New blank sheet</button><button id="local-add" onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button id="local-restore" onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><style>#sb-panel [hidden]{display:none!important}#sb-panel button{padding:9px;cursor:pointer}#sb-panel input,#sb-panel select{font-size:16px}</style>
 <section id="sb-panel" style="background:#e9f3ee;padding:10px 16px;border-bottom:1px solid #9eb5a5;font:14px Arial">
 <details open><summary style="cursor:pointer;font-weight:bold">☁ Supabase cloud login · <span id="sb-mode">Local sheet · not synced</span></summary>
