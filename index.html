@@ -621,7 +621,7 @@ const head=document.getElementById('head'),body=document.getElementById('rows');
   const populated=[...tr.querySelectorAll('input,textarea')].some(el=>String(el.value||'').trim()!=='');
   if(populated)lastUsed=i;
  });
- rows.forEach((tr,i)=>tr.classList.toggle('end-shift-unused',!!data.endShift&&i>Math.max(0,lastUsed)));
+ rows.forEach((tr,i)=>{\n  const hide=!!data.endShift&&i>Math.max(0,lastUsed);\n  tr.classList.toggle('end-shift-unused',hide);\n  tr.style.setProperty('display',hide?'none':'','important');\n });
 }
 function endShift(){if(data.endShift){if(!confirm('Remove the end-of-shift marker?'))return;data.endShift=false;}else{if(!confirm('Submit this completed shift for manager review?'))return;data.endShift=true;}renderEndShift();save();window.dispatchEvent(new CustomEvent('sic-end-shift',{detail:{ended:!!data.endShift}}));}
 function newSheet(){
