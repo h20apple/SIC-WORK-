@@ -21,9 +21,10 @@ function showPermissions() {
   $('sb-account').hidden = !user || !role;
   $('sb-identity').textContent = user?.email?.split('@')[0] || '';
   $('sb-staff-admin').hidden = !isRossAdmin();
+  $('sb-panel').classList.toggle('staff-mode',!!(user&&role&&!isRossAdmin()));
   $('md-accounts-tab').hidden = !isRossAdmin();
   // Keep cloud syncing active, but reserve the Supabase control panel for rossadmin.
-  $('sb-panel').hidden = !!(user && role) && (!isRossAdmin() || managerView==='dashboard');
+  $('sb-panel').hidden = managerView==='dashboard';
   $('manager-dashboard-button').hidden = role !== 'manager';
   $('manager-dashboard-shortcut').hidden = role !== 'manager' || managerView==='dashboard';
   $('sb-role').textContent = role || '';
@@ -214,7 +215,7 @@ function managerSwitch(view){
  document.body.classList.toggle('manager-home',view==='dashboard');
  $('manager-dashboard').hidden=view!=='dashboard';
  $('manager-choice').hidden=true;
- $('sb-panel').hidden=view==='dashboard'||!isRossAdmin();
+ $('sb-panel').hidden=view==='dashboard';
  $('manager-dashboard-shortcut').hidden=view==='dashboard';
  if(view==='dashboard'){managerArea=null;managerLine=null;setManagerSubpage(false);refreshManager();}
 }
