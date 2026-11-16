@@ -36,6 +36,7 @@ function showPermissions() {
   $('local-restore').disabled = !!current;
 }
 function fillSicIdentity(onlyEmpty=true){
+  window.sicSignedInIdentity={name:staffDisplayName,area:$('sb-area').value,line:$('sb-line').value};
   const fields={leader:staffDisplayName,dell:$('sb-area').value,line:$('sb-line').value};
   for(const [key,value] of Object.entries(fields)){
     if(!value)continue;
@@ -322,7 +323,7 @@ async function refreshAccount(){
   if(authError && !authUser && !/session missing|auth session missing/i.test(authError.message||''))throw authError;
   if(authUser?.id && authUser.id===activeUserId && role){user=authUser;showPermissions();return;}
   if(!authUser && hadSession){window.sicClearPrivate?.();hadSession=false;}
-  if(!authUser){staffDisplayName='';$('manager-dashboard').hidden=true;$('manager-choice').hidden=true;$('sb-panel').hidden=false;document.body.classList.remove('manager-home');}
+  if(!authUser){window.sicSignedInIdentity=null;staffDisplayName='';$('manager-dashboard').hidden=true;$('manager-choice').hidden=true;$('sb-panel').hidden=false;document.body.classList.remove('manager-home');}
   if(watching){await sb.removeChannel(watching);watching=null;}
   clearTimeout(saveTimer);current=null;role=null;lastPayload='';activeUserId=null;
   setAccess(false);
