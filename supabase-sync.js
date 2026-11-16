@@ -369,6 +369,7 @@ async function refreshAccount(){
       window.sicClearPrivate?.();
       $('sb-area').value='';$('sb-line').value='';
       applying=false;
+      window.sicCloudApply?.({});
       fillSicIdentity(true);
       say('Signed in as '+role+' · checking your saved sheets…');
       const sheets=await listSheets();
