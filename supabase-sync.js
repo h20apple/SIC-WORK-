@@ -35,18 +35,23 @@ function showPermissions() {
   $('local-add').disabled = locked || !role;
   $('local-restore').disabled = !!current;
 }
+function hasLocalEntries(){
+  const payload=window.sicCloudRead();
+  return Object.entries(payload).some(([key,value])=>/^r\d+c\d+$/.test(key)&&String(value||'').trim()!=='') || Boolean(String(payload.date||'').trim());
+}
 async function listSheets() {
   const select = $('sb-sheets');
   select.innerHTML = '<option value="">Choose saved sheet…</option>';
   if (!user || !role) return;
   const {data,error} = await sb.from('sheets').select('id,sheet_date,status,owner_id').order('updated_at',{ascending:false}).limit(200);
-  if (error) {say('Could not list sheets: '+errText(error));return;}
+  if (error) {say('Could not list sheets: '+errText(error));return null;}
   for (const item of data) {
     const option = document.createElement('option');
     option.value=item.id;option.textContent=(item.sheet_date||'Undated')+' · '+item.status+' · '+item.id.slice(0,8);
     select.append(option);
   }
   select.value=current?.id || '';
+  return data;
 }
 async function loadSheet(id, silent=false) {
   if (!silent && !confirm('Open cloud sheet? Current on-screen values will be replaced. Save a JSON backup first if needed.')) return;
@@ -180,7 +185,30 @@ async function refreshAccount(){
       user=null;
       await sb.auth.signOut();
       say('Account is inactive or has no assigned role. Ask your Manager.');
-    }else{role=data.role;hadSession=true;activeUserId=user.id;say('Signed in as '+role+' · choose or create a cloud sheet');await listSheets();}
+    }else{
+      role=data.role;hadSession=true;activeUserId=user.id;
+      say('Signed in as '+role+' · checking cloud sheets…');
+      const sheets=await listSheets();
+      if(sheets){
+        const localEntries=hasLocalEntries();
+        if(sheets.length){
+          if(localEntries){
+            say('Local data found. Choose a cloud sheet to load, or create a cloud sheet to preserve local work.');
+          }else{
+            await loadSheet(sheets[0].id,true);
+            say('Your latest cloud sheet has loaded automatically on this device.');
+          }
+        }else if(localEntries){
+          say('This device has local SIC data that is not yet in the cloud.');
+          if(confirm('Upload this device\'s existing SIC Sheet to your cloud account so it is available on other devices?')){
+            const payload=window.sicCloudRead();
+            const created=await sb.from('sheets').insert({owner_id:user.id,sheet_date:String(payload.date||''),payload,status:'draft'}).select('id').single();
+            if(created.error)say('Cloud upload failed: '+errText(created.error));
+            else{await listSheets();await loadSheet(created.data.id,true);say('Local SIC Sheet uploaded. It will now be available when you sign in on another device.');}
+          }
+        }else say('No cloud sheets yet. Create a cloud sheet to sync across devices.');
+      }
+    }
   }else say('Sign in to open your SIC Sheet.');
   showPermissions();
   } finally {
