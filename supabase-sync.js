@@ -161,7 +161,7 @@ async function refreshAccount(){
   refreshing=true;
   try {
   const {data:{user:authUser},error:authError}=await sb.auth.getUser();
-  if(authError && !authUser)throw authError;
+  if(authError && !authUser && !/session missing|auth session missing/i.test(authError.message||''))throw authError;
   if(authUser?.id && authUser.id===activeUserId && role){user=authUser;showPermissions();return;}
   if(watching){await sb.removeChannel(watching);watching=null;}
   clearTimeout(saveTimer);current=null;role=null;lastPayload='';activeUserId=null;
