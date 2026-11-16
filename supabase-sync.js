@@ -57,9 +57,10 @@ function fillSicIdentity(onlyEmpty=true){
   }
 }
 function sheetPayload(){
-  fillSicIdentity(true);
+  if(!current)fillSicIdentity(true);
   const payload=window.sicCloudRead();
-  payload.cloud_username=user?.email?.split('@')[0]||'';
+  // Reviewers must not replace the original operator's identity or assignment.
+  payload.cloud_username=current?.payload?.cloud_username||user?.email?.split('@')[0]||'';
   payload.cloud_area=$('sb-area').value;
   payload.cloud_line=$('sb-line').value;
   return payload;
@@ -68,7 +69,7 @@ function applyLocation(payload){
   $('sb-area').value=payload?.cloud_area||'';
   $('sb-line').value=payload?.cloud_line||'';
   // Fill missing metadata on older sheets without overwriting recorded leaders.
-  fillSicIdentity(true);
+  if(!current)fillSicIdentity(true);
 }
 function hasLocalEntries(){
   const payload=window.sicCloudRead();
@@ -111,15 +112,22 @@ async function loadSheet(id, silent=false) {
   // Subscribe to changes from other devices. Realtime requires publication enabled.
   watching=sb.channel('sic-sheet-'+id).on('postgres_changes',{
     event:'UPDATE',schema:'public',table:'sheets',filter:'id=eq.'+id
-  },async () => {
-    if (applying) return;
-    if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;if(!await saveCloud())return;}
-    if (JSON.stringify(sheetPayload())!==lastPayload) {say('Remote change detected. Save a backup of your unsaved changes before reloading.');return;}
+  },async()=>{
+    if(applying||current?.id!==id)return;
+    // Wait for queued local writes before applying a remote update.
+    if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}
+    if(!await saveCloud())return;
+    await saving;
     const result=await sb.from('sheets').select('*').eq('id',id).single();
-    if(result.error || !result.data || current?.id !== id)return;
-    const incoming=JSON.stringify(result.data.payload || {});
+    if(result.error||!result.data||current?.id!==id)return;
+    const incoming=JSON.stringify(result.data.payload||{});
+    if(incoming!==lastPayload){
+      applying=true;
+      try{window.sicCloudApply(result.data.payload||{});applyLocation(result.data.payload);}
+      finally{applying=false;}
+    }
     current=result.data;
-    if(incoming!==lastPayload){applying=true;window.sicCloudApply(result.data.payload||{});applyLocation(result.data.payload);applying=false;lastPayload=incoming;}
+    lastPayload=incoming;
     showPermissions();
     say('Cloud sheet updated · '+current.status);
   }).subscribe();
