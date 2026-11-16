@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Final Product Label Verification Checks (M&S)</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font:15px Arial,sans-serif;background:#eef2ef;color:#18251d}header{background:#20372a;color:white;padding:14px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}header a{color:#d9ffe3}main{max-width:1200px;margin:16px auto;padding:0 12px}section{background:white;padding:16px;margin-bottom:12px;border:1px solid #cbd7cf;border-radius:10px}h1{font-size:20px;margin:0}h2{font-size:17px;margin:0 0 12px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}label{display:flex;flex-direction:column;gap:5px;font-weight:600}input,select,textarea,button{font:inherit;padding:10px;border:1px solid #abbdb0;border-radius:6px;min-width:0}button{background:#1e5c3b;color:white;border:0;cursor:pointer;font-weight:bold}button:disabled{opacity:.5}button.secondary{background:#e1ece5;color:#183b2a}textarea{width:100%;min-height:70px}.checks{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:900px}th,td{border:1px solid #b6c3b9;padding:6px;text-align:left}th{background:#e4eae6;font-size:12px}td input,td select{width:100%;font-size:14px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}#status{font-weight:600}small{color:#526357}@media print{header,.no-print{display:none!important}body{background:white}section{border:0;break-inside:avoid}main{max-width:none}input,select,textarea{border:0;border-bottom:1px solid #aaa;padding:4px}table{min-width:0;font-size:10px}}
+</style></head><body>
+<header><h1>Final Product Label Verification Checks (M&S)</h1><a id="sic-link" href="./index.html" hidden>SIC Sheet</a><span id="identity"></span><button id="logout" hidden>Sign out</button></header>
+<main><section id="login-section"><h2>Staff sign in</h2><form id="login" class="row"><input id="username" autocomplete="username" placeholder="Username" required><input id="password" type="password" autocomplete="current-password" placeholder="Password" required><button>Sign in</button></form></section>
+<div id="work" hidden>
+<section><div class="row"><h2>Bo'ness · CCP9</h2><small>Reason for issue: Frequency of retaining samples has changed</small></div>
+<div class="grid">
+<label>Pack Date <input id="pack-date" placeholder="DD/MM/YYYY" inputmode="numeric" maxlength="10"></label>
+<label>Deli <select id="deli"><option value="">Select Deli</option><option>Deli 1</option><option>Deli 2</option><option>Deli 3</option></select></label>
+<label>Line <input id="line" placeholder="Line number" inputmode="numeric"></label>
+<label>Shift <input id="shift" placeholder="Shift"></label>
+<label>Sheet <input id="sheet-no" inputmode="numeric" placeholder="1"></label>
+<label>Of <input id="sheet-of" inputmode="numeric" placeholder="1"></label>
+</div></section>
+<section><h2>Product checks</h2><p><small>Enter an R-code, total trays and burst packs. Save to cloud to make the figures available to the matching SIC Sheet. Never mark a check as passed unless verified.</small></p>
+<div class="checks"><table><thead><tr><th>Line check (initials)</th><th>R Code</th><th>Depot Start Reference (Time)</th><th>Visual checks / packs</th><th>Use By (DD/MM/YYYY)</th><th>Film quality ✓/✕</th><th>UPC on Tray End</th><th>UPC on Label</th><th>Do the 2 UPCs match? ✓/✕</th><th>No. of labels used</th><th>Label change ✓/✕</th><th>Total Trays</th><th>Burst Packs</th><th>Operator initials</th></tr></thead>
+<tbody><tr id="check-row">
+<td><input data-field="initials"></td><td><input id="r-code" data-field="rCode" placeholder="R5538"></td><td><input data-field="startTime" placeholder="00:00"></td><td><input data-field="visual"></td><td><input data-field="useBy" placeholder="DD/MM/YYYY"></td>
+<td><select data-field="film"><option value="">—</option><option>✓</option><option>✕</option></select></td><td><input data-field="upcTray"></td><td><input data-field="upcLabel"></td>
+<td><select data-field="upcMatch"><option value="">—</option><option>✓</option><option>✕</option></select></td><td><input data-field="labelsUsed" inputmode="numeric"></td>
+<td><select data-field="labelChange"><option value="">—</option><option>✓</option><option>✕</option></select></td><td><input id="total-trays" data-field="totalTrays" type="number" min="0"></td><td><input id="burst-packs" data-field="burstPacks" type="number" min="0"></td><td><input data-field="operatorInitials"></td>
+</tr></tbody></table></div>
+</section>
+<section><h2>Production figures and verification</h2><div class="grid">
+<label>Total no. waste sleeves <input data-extra="wasteSleeves" inputmode="numeric"></label><label>Total trays - labelled packs <input data-extra="labelledPacks" inputmode="numeric"></label>
+<label>Unlabelled packs <input data-extra="unlabelledPacks" inputmode="numeric"></label><label>Over packs <input data-extra="overPacks" inputmode="numeric"></label>
+<label>Reject packs <input data-extra="rejectPacks" inputmode="numeric"></label><label>Floor waste <input data-extra="floorWaste" inputmode="numeric"></label>
+<label>Metal detector check <select data-extra="metalDetector"><option value="">Not recorded</option><option>✓</option><option>✕</option></select></label>
+<label>Operator signature / name <input data-extra="operatorSignature"></label>
+<label>Charge Hand signature / name <input data-extra="chargeHandSignature"></label>
+</div><p><label>Additional comments <textarea data-extra="comments"></textarea></label></p></section>
+<section class="no-print"><div class="row"><button id="save">Save Final Product Sheet</button><button class="secondary" id="new">New product entry</button><button class="secondary" id="print">Print / PDF</button><button class="secondary" id="refresh">Refresh saved entries</button></div><p id="status" role="status">Sign in to begin.</p><label>Saved entries <select id="saved"><option value="">Choose saved product…</option></select></label><p><small>Only a matching production date, Deli, Line and R-code can link to the SIC Sheet. Operators cannot view SIC data.</small></p></section>
+</div><p id="public-status" role="status"></p></main>
+<script type="module" src="./final-product.js?v=20261116-1"></script></body></html>
