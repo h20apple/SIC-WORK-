@@ -616,7 +616,23 @@ const head=document.getElementById('head'),body=document.getElementById('rows');
  for(let i=0;i<9;i++)addRow();
  refreshTotals();save();
 }
-function addRow(){let i=body.children.length;let tr=document.createElement('tr');headers.forEach((h,j)=>{let td=document.createElement('td'),inp=document.createElement(j===18?'textarea':'input');inp.setAttribute('aria-label',h+' row '+(i+1));inp.dataset.key='r'+i+'c'+j;inp.value=data[inp.dataset.key]||'';if(j===0||j===1){inp.inputMode='numeric';inp.maxLength=5;inp.placeholder='00:00';inp.addEventListener('input',()=>{inp.value=inp.value.trim()==='='?'=':formatTime(inp.value);refreshTotals();save()})}else if(j===4){inp.inputMode='numeric';inp.maxLength=10;inp.placeholder='DD/MM/YYYY';inp.addEventListener('input',()=>{inp.value=formatDate(inp.value);save()})}else if(j===7||j===17){inp.readOnly=true;inp.tabIndex=-1;inp.title=j===7?'Units per tray × Total trays':'Extra Loose packs ÷ Units per tray';inp.className='calculated'}else{if(j===14||j===15||j===16)inp.inputMode='decimal';inp.addEventListener('input',()=>{if(j===13)delete inp.dataset.autoFinishSamples;if(j===2){
+const DOLLY_DEPOTS=[['ROI','R.O.I'],['NI','NI'],['ENFIELD','Enfield'],['FAVERSHAM','Faversham'],['BRISTOL','Bristol'],['THATCHAM','Thatcham'],['HEMEL','Hemel'],['BARNSLEY','Barnsley'],['CREWE','Crewe'],['CUMBERNAULD','Cumbernauld']];
+function expandDepotOrder(value){
+ const raw=String(value||'').trim();
+ // Accept 36E, 36 E, 36BR, 36 BA, 36ROI, etc.
+ const match=raw.match(/^(\\d+)\\s*[- ]?\\s*([a-z.]+)$/i);
+ if(!match)return raw;
+ const qty=match[1],prefix=match[2].toUpperCase().replace(/\\./g,'');
+ const found=DOLLY_DEPOTS.filter(([code,name])=>code.startsWith(prefix)||name.toUpperCase().replace(/[^A-Z]/g,'').startsWith(prefix));
+ if(found.length!==1)return raw; // Ambiguous prefixes (B, C) remain unchanged.
+ return qty+' '+found[0][1];
+}
+function addRow(){let i=body.children.length;let tr=document.createElement('tr');headers.forEach((h,j)=>{let td=document.createElement('td'),inp=document.createElement(j===18?'textarea':'input');inp.setAttribute('aria-label',h+' row '+(i+1));inp.dataset.key='r'+i+'c'+j;inp.value=data[inp.dataset.key]||'';if(j===0||j===1){inp.inputMode='numeric';inp.maxLength=5;inp.placeholder='00:00';inp.addEventListener('input',()=>{inp.value=inp.value.trim()==='='?'=':formatTime(inp.value);refreshTotals();save()})}else if(j===4){inp.inputMode='numeric';inp.maxLength=10;inp.placeholder='DD/MM/YYYY';inp.addEventListener('input',()=>{inp.value=formatDate(inp.value);save()})}else if(j===5){
+ inp.autocomplete='off';inp.placeholder='e.g. 36E, 36BR';
+ inp.addEventListener('change',()=>{const expanded=expandDepotOrder(inp.value);if(expanded!==inp.value){inp.value=expanded;save();}});
+ inp.addEventListener('blur',()=>{const expanded=expandDepotOrder(inp.value);if(expanded!==inp.value){inp.value=expanded;save();}});
+ inp.addEventListener('input',save);
+ }else if(j===7||j===17){inp.readOnly=true;inp.tabIndex=-1;inp.title=j===7?'Units per tray × Total trays':'Extra Loose packs ÷ Units per tray';inp.className='calculated'}else{if(j===14||j===15||j===16)inp.inputMode='decimal';inp.addEventListener('input',()=>{if(j===13)delete inp.dataset.autoFinishSamples;if(j===2){
  const productField=tr.children[3].firstChild;
  if(productField.dataset.lookupValue && productField.value===productField.dataset.lookupValue)productField.value='';
  const unitField=tr.children[14].firstChild;
