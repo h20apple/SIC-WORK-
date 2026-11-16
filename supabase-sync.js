@@ -215,8 +215,9 @@ function managerSwitch(view){
  if(view==='dashboard')refreshManager();
 }
 function managerWelcome(){
- if(role!=='manager')return;
- $('manager-choice').hidden=false;
+ // Managers can open the dashboard from the toolbar at any time.
+ // Do not interrupt their SIC Sheet with a login choice overlay.
+ $('manager-choice').hidden=true;
 }
 $('md-choose-dashboard').addEventListener('click',()=>managerSwitch('dashboard'));
 $('md-choose-sheet').addEventListener('click',()=>managerSwitch('sheet'));
