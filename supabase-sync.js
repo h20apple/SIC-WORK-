@@ -147,24 +147,62 @@ async function refreshOpenSheet(){
  finally{cloudRefreshBusy=false;}
 }
 async function saveCloud() {
-  if(!canEdit() || applying)return true;
-  const sheetId=current.id;
-  const payload=sheetPayload();
-  const serialized=JSON.stringify(payload);
-  if(serialized===lastPayload)return true;
+ if(!canEdit()||applying)return true;
+ const sheetId=current.id;
+ const task=async()=>{
+  if(current?.id!==sheetId)return false;
+  let local=sheetPayload();
+  let base=current.payload||{};
+  if(JSON.stringify(local)===JSON.stringify(base))return true;
   say('Saving to cloud…');
-  const task = async () => {
-    const expectedVersion=current?.id===sheetId?current.updated_at:null;
-    if(!expectedVersion)return false;
-    const {data,error}=await sb.from('sheets').update({payload,sheet_date:String(payload.date||'')}).eq('id',sheetId).eq('status','draft').eq('updated_at',expectedVersion).select('id,updated_at');
-    if(error || !data?.length){say('Save blocked: '+(error?errText(error):'Another device changed this sheet. Save a JSON backup before reloading.'));return false;}
-    if(current?.id===sheetId){lastPayload=serialized;current.updated_at=data[0].updated_at;current.payload=payload;}
-    say('Saved to Supabase');return true;
-  };
-  const result=saving.then(task,task);
-  saving=result.then(()=>{},()=>{});
-  return result;
+  for(let attempt=0;attempt<4;attempt++){
+   if(current?.id!==sheetId)return false;
+   const {data:updated,error}=await sb.from('sheets')
+    .update({payload:local,sheet_date:String(local.date||'')})
+    .eq('id',sheetId).eq('status','draft').eq('updated_at',current.updated_at)
+    .select('id,updated_at');
+   if(error){say('Save failed: '+errText(error));return false;}
+   if(updated?.length){
+    current.updated_at=updated[0].updated_at;
+    current.payload=local;
+    lastPayload=JSON.stringify(local);
+    say('Saved to Supabase');
+    return true;
+   }
+   const {data:remote,error:readError}=await sb.from('sheets').select('*').eq('id',sheetId).single();
+   if(readError||!remote||remote.status!=='draft'){
+    say('Sheet could not be updated. Save a JSON backup.');
+    return false;
+   }
+   const theirs=remote.payload||{};
+   const merged={...theirs};
+   const conflicts=[];
+   for(const key of new Set([...Object.keys(base),...Object.keys(local)])){
+    const before=JSON.stringify(base[key]??null);
+    const mine=JSON.stringify(local[key]??null);
+    const other=JSON.stringify(theirs[key]??null);
+    if(mine===before)continue;
+    if(other!==before&&other!==mine){conflicts.push(key);continue;}
+    if(Object.prototype.hasOwnProperty.call(local,key))merged[key]=local[key];
+    else delete merged[key];
+   }
+   if(conflicts.length){
+    say('Both devices edited '+conflicts.slice(0,3).join(', ')+'. Save a JSON backup and resolve the conflict.');
+    return false;
+   }
+   current.updated_at=remote.updated_at;
+   current.payload=theirs;
+   base=theirs;
+   local=merged;
+  }
+  say('Save is busy on another device. Try again shortly.');
+  return false;
+ };
+ const result=saving.then(task,task);
+ saving=result.then(()=>{},()=>{});
+ return result;
 }
+
 window.addEventListener('sic-manager-highlight',async()=>{if(!current||!canEdit())return;clearTimeout(saveTimer);if(await saveCloud())say('Manager highlight saved to cloud');});
 window.addEventListener('sic-end-shift',async()=>{if(!current){say('End of shift marked locally. Create a cloud sheet to submit it for manager review.');return;}clearTimeout(saveTimer);if(await saveCloud())say('End of shift saved. Managers can now review this sheet in their dashboard.');});
 async function createAutoSheet(){
