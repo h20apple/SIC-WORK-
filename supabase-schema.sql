@@ -65,12 +65,12 @@ with check (public.sic_active() and owner_id = (select auth.uid())
 -- because RLS WITH CHECK alone cannot compare OLD and NEW rows.
 create or replace function public.sic_guard_sheet_update()
 returns trigger language plpgsql security invoker set search_path = '' as $$
-declare current_role text := public.sic_role();
+declare actor_role text := public.sic_role();
 begin
   if new.owner_id is distinct from old.owner_id or new.created_at is distinct from old.created_at then
     raise exception 'Cannot change owner or creation date';
   end if;
-  if current_role <> 'manager' then
+  if actor_role is distinct from 'manager' then
     if old.status <> 'draft' or new.status <> 'draft'
        or new.approved_by is not null or new.approved_at is not null then
       raise exception 'Only managers can approve or reopen';
