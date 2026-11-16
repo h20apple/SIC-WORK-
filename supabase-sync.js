@@ -24,9 +24,10 @@ function showPermissions() {
   });
   // Prevent creating rows or clearing a cloud sheet while it is read-only.
   const locked = !!current && !canEdit();
-  $('local-new').disabled = locked;
+  // A new blank sheet or restore must not silently overwrite an attached cloud sheet.
+  $('local-new').disabled = !!current;
   $('local-add').disabled = locked;
-  $('local-restore').disabled = locked;
+  $('local-restore').disabled = !!current;
 }
 async function listSheets() {
   const select = $('sb-sheets');
@@ -43,6 +44,7 @@ async function listSheets() {
 }
 async function loadSheet(id, silent=false) {
   if (!silent && !confirm('Open cloud sheet? Current on-screen values will be replaced. Save a JSON backup first if needed.')) return;
+  if (saveTimer) {clearTimeout(saveTimer);saveTimer=null;await saveCloud();}
   if (watching) { await sb.removeChannel(watching); watching=null; }
   const {data,error}=await sb.from('sheets').select('*').eq('id',id).single();
   if(error){say('Cannot load sheet: '+errText(error));return;}
