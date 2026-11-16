@@ -93,6 +93,35 @@ body.auth-locked #sb-panel p:last-child{font-size:12px;color:#506358}
  .footer{margin-top:7mm!important;font-size:8px!important}
  .meta .print-value,.comment .print-value,.footer .print-value{font-size:9px!important}
 }
+
+/* Deliberate print headings: never split a word across two lines. */
+.print-heading{display:none}
+@media print{
+ .screen-heading{display:none!important}
+ .print-heading{display:block!important;white-space:normal!important;word-break:keep-all!important;overflow-wrap:normal!important;hyphens:none!important}
+ .sheet th{font-size:8px!important;line-height:1.22!important;font-weight:700!important;word-break:keep-all!important;overflow-wrap:normal!important;hyphens:none!important;height:12mm!important;padding:.7mm .2mm!important}
+ .sheet th:nth-child(1),.sheet th:nth-child(2){width:4.3%!important}
+ .sheet th:nth-child(3){width:4.7%!important}
+ .sheet th:nth-child(4){width:14.5%!important}
+ .sheet th:nth-child(5){width:6.3%!important}
+ .sheet th:nth-child(6){width:5.6%!important}
+ .sheet th:nth-child(7){width:5%!important}
+ .sheet th:nth-child(8){width:5.3%!important}
+ .sheet th:nth-child(9){width:4.6%!important}
+ .sheet th:nth-child(10){width:4.5%!important}
+ .sheet th:nth-child(11){width:5%!important}
+ .sheet th:nth-child(12){width:4.2%!important}
+ .sheet th:nth-child(13){width:5.1%!important}
+ .sheet th:nth-child(14){width:5.5%!important}
+ .sheet th:nth-child(15){width:4.4%!important}
+ .sheet th:nth-child(16){width:4.4%!important}
+ .sheet th:nth-child(17){width:6.1%!important}
+ .sheet th:nth-child(18){width:4.2%!important}
+ .sheet th:nth-child(19){width:7.6%!important}
+ .sheet td:nth-child(5) .print-value{font-size:7.5px!important;white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;padding:.6mm 0!important}
+ .sheet td .print-value{font-size:8px!important;word-break:normal!important}
+ .sheet td:nth-child(4) .print-value{font-size:8px!important}
+}
 </style></head><body class="auth-locked"><div class="toolbar"><strong>SIC Sheet · v1.2 by Ross Hutton</strong><span class="hint">Tap any box to edit · Saves automatically</span><button id="local-new" onclick="newSheet()">New blank sheet</button><button id="local-add" onclick="addRow()">+ Add row</button><button onclick="exportData()">Save backup</button><button id="local-restore" onclick="document.getElementById('restore').click()">Restore</button><input hidden type="file" id="restore" accept="application/json" onchange="restoreData(event)"><button class="primary" onclick="printSheet()">Print / PDF</button></div><style>#sb-panel [hidden]{display:none!important}#sb-panel button{padding:9px;cursor:pointer}#sb-panel input,#sb-panel select{font-size:16px}</style>
 <section id="sb-panel" style="background:#e9f3ee;padding:10px 16px;border-bottom:1px solid #9eb5a5;font:14px Arial">
 <details open><summary style="cursor:pointer;font-weight:bold">☁ Supabase cloud login · <span id="sb-mode">Local sheet · not synced</span></summary>
@@ -403,7 +432,7 @@ function fillProduct(tr){
    if(!product.value.trim()||product.value===previous){product.value=PRODUCT_LOOKUP[normalized];product.dataset.lookupValue=product.value;}
  }
 }
-const head=document.getElementById('head'),body=document.getElementById('rows');headers.forEach(h=>{let th=document.createElement('th');th.textContent=h;head.append(th)});const KEY='greencore-sic-paper-v12';let data={};try{data=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}function save(){document.querySelectorAll('[data-key]').forEach(el=>data[el.dataset.key]=el.value);try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){console.warn('Autosave unavailable in this viewer',e)};window.dispatchEvent(new Event('sic-local-saved'))}function newSheet(){
+const head=document.getElementById('head'),body=document.getElementById('rows');const printHeaders=['Start<br>Time','Finish<br>Time','R-code','Product<br>Description','Date<br>Code','Order<br>Update','Planned<br>Packs','Packs<br>Produced','LOMA<br>Packs','OAL<br>Reads','Despatch<br>Waste','Dell<br>Rejects','Dell Burst<br>Packs','Samples /<br>Temp Packs','Units per<br>Tray','Total<br>Trays','Extra Loose<br>Packs','Extra<br>Trays','Redzone'];headers.forEach((h,i)=>{let th=document.createElement('th');const screen=document.createElement('span');screen.className='screen-heading';screen.textContent=h;const printed=document.createElement('span');printed.className='print-heading';printed.innerHTML=printHeaders[i];th.append(screen,printed);head.append(th)});const KEY='greencore-sic-paper-v12';let data={};try{data=JSON.parse(localStorage.getItem(KEY))||{};}catch(e){}function save(){document.querySelectorAll('[data-key]').forEach(el=>data[el.dataset.key]=el.value);try{localStorage.setItem(KEY,JSON.stringify(data))}catch(e){console.warn('Autosave unavailable in this viewer',e)};window.dispatchEvent(new Event('sic-local-saved'))}function newSheet(){
  if(!confirm('Start a new blank SIC Sheet? Save a backup first if you need the current data.'))return;
  data={};
  try{localStorage.removeItem(KEY)}catch(e){}
