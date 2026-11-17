@@ -413,6 +413,24 @@ $('md-filter').addEventListener('change',e=>{managerFilter=e.target.value;if(man
 function managerName(id){const p=managerProfiles.find(x=>x.id===id);return p?.display_name||id?.slice(0,8)||'Unknown';}
 function sheetArea(s){return s.payload?.cloud_area||'Unassigned';}
 function sheetLine(s){return s.payload?.cloud_line||'Unassigned';}
+async function deleteManagerSheet(item){
+ if(role!=='manager'||!item?.id)return;
+ const label=[item.sheet_date||'Undated',sheetArea(item),sheetLine(item),item.payload?.cloud_username||managerName(item.owner_id)].join(' · ');
+ if(!confirm('Permanently delete this SIC sheet?\\n\\n'+label+'\\n\\nThis cannot be undone. Export a backup first if needed.'))return;
+ const typed=prompt('To confirm permanent deletion, type DELETE');
+ if(typed!=='DELETE'){$('md-status').textContent='Deletion cancelled.';return;}
+ $('md-status').textContent='Deleting SIC sheet…';
+ const {data,error}=await sb.from('sheets').delete().eq('id',item.id).select('id');
+ if(error){$('md-status').textContent='Delete failed: '+errText(error);return;}
+ if(!data?.length){$('md-status').textContent='Delete not permitted or sheet already removed.';return;}
+ if(current?.id===item.id){
+  if(watching){await sb.removeChannel(watching);watching=null;}
+  current=null;lastPayload='';window.sicClearPrivate?.();showPermissions();
+ }
+ await listSheets();
+ await refreshManager();
+ $('md-status').textContent='SIC sheet permanently deleted.';
+}
 function drawManagerOverview(area=null,line=null){
  managerArea=area;managerLine=line;
  setManagerSubpage(!!(area&&line));
@@ -461,7 +479,7 @@ function drawManagerOverview(area=null,line=null){
   item.payload?.cloud_username||managerName(item.owner_id),
   item.payload?.endShift&&item.status==='draft'?'Needs review':item.status,
   item.updated_at?new Date(item.updated_at).toLocaleString('en-GB'):'—',
-  managerButton('Review sheet',async()=>{await loadSheet(item.id,true);if(current?.id===item.id)managerSwitch('sheet');})
+  (()=>{const actions=mdEl('div',undefined,'md-row-actions');actions.append(managerButton('Review',async()=>{await loadSheet(item.id,true);if(current?.id===item.id)managerSwitch('sheet');}));const del=managerButton('Delete',()=>deleteManagerSheet(item));del.classList.add('md-delete');actions.append(del);return actions;})()
  ])));
  recent.append(wrapper);
 }
