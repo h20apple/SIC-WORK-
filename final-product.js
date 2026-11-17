@@ -100,7 +100,24 @@ $('login').addEventListener('submit',async e=>{
   if(error)throw error;await account();
  }catch(error){status('Sign in failed: '+error.message);}
 });
-$('logout').addEventListener('click',async()=>{await sb.auth.signOut();user=null;role=null;current=null;await account();});
+$('logout').addEventListener('click',async()=>{
+ if(!user||!confirm('Sign out of your account on this device?'))return;
+ const button=$('logout');button.disabled=true;
+ clearTimeout(timer);timer=null;
+ status('Signing out…');
+ try{
+  const {error}=await sb.auth.signOut();
+  if(error)throw error;
+  accountGeneration++;
+  user=null;role=null;current=null;
+  reset();
+  $('saved').replaceChildren(new Option('Choose saved product…',''));
+  window.location.replace('./final-product.html');
+ }catch(error){
+  status('Sign out failed: '+error.message);
+  button.disabled=false;
+ }
+});
 $('save').addEventListener('click',save);
 $('delete').addEventListener('click',async()=>{
  if(!current||!user||!(current.owner_id===user.id||role==='manager'))return;
