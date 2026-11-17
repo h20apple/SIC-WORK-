@@ -14,11 +14,11 @@ const errText = e => (e?.message || String(e)).slice(0,180);
 let autoCreateBusy=false, deliPromptShown=false;
 let staffDisplayName = '', user = null, role = null, current = null, watching = null, saveTimer = null, applying = false, lastPayload = '', refreshing = false, refreshQueued = false, activeUserId = null, saving = Promise.resolve(), hadSession = false;
 function canEdit() {
-  return !!(user && (role==='charge_hand'||role==='manager') && current && current.status === 'draft' &&
-    (role === 'manager' || role === 'charge_hand' || current.owner_id === user.id));
+  return !!(user && role==='charge_hand' && current && current.status === 'draft');
 }
 function showPermissions() {
   setAccess(!!(user && role && role!=='operator'));
+  document.body.classList.toggle('manager-review-only',role==='manager');
   $('sb-login').hidden = !!(user && role);
   $('sb-account').hidden = !user || !role;
   $('sb-identity').textContent = user?.email?.split('@')[0] || '';
@@ -33,19 +33,19 @@ function showPermissions() {
   $('sb-approve').hidden = role !== 'manager' || !current || current.status === 'approved';
   $('sb-reopen').hidden = role !== 'manager' || !current || current.status !== 'approved';
   $('sb-save').disabled = !canEdit();
-  $('sb-new').disabled = !['charge_hand','manager'].includes(role);
+  $('sb-new').disabled = role!=='charge_hand';
   window.sicManagerReviewMode=!!(role==='manager'&&current&&current.status==='draft');
   $('end-shift-button').disabled=!!current&&!canEdit();
   $('sb-mode').textContent = current ? (canEdit() ? 'Cloud draft · editable' : 'Cloud sheet · read-only') : 'Local sheet · not synced';
   document.querySelectorAll('.paper input,.paper textarea,.sheet .order-toggle,.sheet .circle-toggle').forEach(el => {
-    el.disabled = !!current && !canEdit();
+    el.disabled = role==='manager' || (!!current && !canEdit());
   });
   // Prevent creating rows or clearing a cloud sheet while it is read-only.
-  const locked = !!current && !canEdit();
+  const locked = role==='manager' || (!!current && !canEdit());
   // A new blank sheet or restore must not silently overwrite an attached cloud sheet.
-  $('local-new').disabled = !!current;
+  $('local-new').disabled = role==='manager' || !!current;
   $('local-add').disabled = locked || !role;
-  $('local-restore').disabled = !!current;
+  $('local-restore').disabled = role==='manager' || !!current;
 }
 function fillSicIdentity(onlyEmpty=true){
   window.sicSignedInIdentity={name:staffDisplayName,area:$('sb-area').value,line:$('sb-line').value};
@@ -123,7 +123,7 @@ async function loadSheet(id, silent=false) {
 let cloudRefreshBusy=false;
 // Operator-to-SIC import. Operators only write final_product_checks; never read SIC.
 async function importFinalChecks(){
- if(!canEdit()||!current||!['charge_hand','manager'].includes(role))return;
+ if(!canEdit()||!current)return;
  if(JSON.stringify(sheetPayload())!==lastPayload)return;
  const base=current.payload||{};
  const productionDate=String(base.date||'').trim();
@@ -268,7 +268,7 @@ async function saveCloud() {
 window.addEventListener('sic-manager-highlight',async()=>{if(!current||!canEdit())return;clearTimeout(saveTimer);if(await saveCloud())say('Manager highlight saved to cloud');});
 window.addEventListener('sic-end-shift',async()=>{if(!current){say('End of shift marked locally. Create a cloud sheet to submit it for manager review.');return;}clearTimeout(saveTimer);if(await saveCloud())say('End of shift saved. Managers can now review this sheet in their dashboard.');});
 async function createAutoSheet(){
- if(autoCreateBusy||current||!user||!['charge_hand','manager'].includes(role)||!hasLocalEntries())return;
+ if(autoCreateBusy||current||!user||role!=='charge_hand'||!hasLocalEntries())return;
  if(!$('sb-area').value){
   if(!deliPromptShown){
    deliPromptShown=true;
@@ -327,7 +327,7 @@ $('sb-create-user').addEventListener('submit',async e=>{
 });
 $('sb-logout').addEventListener('click',async()=>{clearTimeout(saveTimer);if(current && canEdit() && !await saveCloud()){say('Save failed. Please save a backup before signing out.');return;}if(!current && !confirm('Any local-only sheet on this device will be cleared when you sign out. Export a backup first. Continue?'))return;const {error}=await sb.auth.signOut();if(error)say('Sign-out failed: '+errText(error));});
 $('sb-new').addEventListener('click',async()=>{
-  if(!user||!['charge_hand','manager'].includes(role)){say('Operators use the Final Product Sheet.');return;}
+  if(!user||role!=='charge_hand'){say('Only Charge Hands can create SIC sheets. Managers review existing sheets.');return;}
   if(!confirm('Create a cloud sheet from the CURRENT on-screen form?'))return;
   if(!$('sb-area').value||!$('sb-line').value){say('Select a deli area and line before creating a cloud sheet.');return;}
   fillSicIdentity(true);
@@ -383,9 +383,8 @@ function setManagerSubpage(open){
 }
 $('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','insights','staff','audit','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
 function managerWelcome(){
- // Managers can open the dashboard from the toolbar at any time.
- // Do not interrupt their SIC Sheet with a login choice overlay.
  $('manager-choice').hidden=true;
+ managerSwitch('dashboard');
 }
 $('md-choose-dashboard').addEventListener('click',()=>managerSwitch('dashboard'));
 $('md-choose-sheet').addEventListener('click',()=>managerSwitch('sheet'));
@@ -632,14 +631,17 @@ async function refreshAccount(){
       say('Signed in as '+role+' · checking your saved sheets…');
       const sheets=await listSheets();
       if(sheets){
-        if(role==='manager')managerWelcome();
-        // Only load sheets owned by this login. Managers can browse others in the dashboard.
-        const ownSheets=sheets.filter(item=>item.owner_id===user.id);
-        if(ownSheets.length){
-          await loadSheet(ownSheets[0].id,true);
-          say('Your latest saved SIC Sheet has loaded.');
+        if(role==='manager'){
+          managerWelcome();
+          say('Manager review mode · select a staff SIC sheet to inspect or approve.');
         }else{
-          say('Blank SIC Sheet ready. Choose your Deli and Line, then Create cloud sheet to save. Charge Hands can select shared sheets from the saved sheets menu.');
+          const ownSheets=sheets.filter(item=>item.owner_id===user.id);
+          if(ownSheets.length){
+            await loadSheet(ownSheets[0].id,true);
+            say('Your latest saved SIC Sheet has loaded.');
+          }else{
+            say('Blank SIC Sheet ready. Choose your Deli and Line, then Create cloud sheet to save.');
+          }
         }
       }
     }
