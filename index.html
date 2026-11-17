@@ -716,7 +716,7 @@ function refreshTotals(){refreshHighlights();
   const finishRow=trs[finishIdx];
   const productCode=group.map(idx=>trs[idx].children[2].firstChild.value.trim().toUpperCase()).find(Boolean)||'';
   const normalizedCode=/^R?\d+$/.test(productCode)?'R'+productCode.replace(/^R/,''):productCode;
-  const defaultSamples=PRODUCT_DEFAULTS[normalizedCode]?.samples;
+  const defaultSamples=PRODUCT_DEFAULTS[normalizedCode]?.samples == null ? null : Number(PRODUCT_DEFAULTS[normalizedCode].samples) + 1;
   if(defaultSamples!=null){
    const sampleField=finishRow.children[13].firstChild;
    if(!sampleField.value.trim()||sampleField.dataset.autoFinishSamples==='1'){
