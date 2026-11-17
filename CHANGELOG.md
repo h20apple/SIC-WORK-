@@ -2,6 +2,12 @@
 
 Updated: 17 November 2026. This is a product change log, **not** a substitute for the database audit trail. Dates before this entry are approximate unless backed by a linked commit.
 
+## 17 November 2026 — Final Product Sheet temporarily paused
+- Removed the Final Product Sheet navigation link from SIC while a replacement is prepared.
+- The old Final Product URL now displays a temporary-unavailable page instead of the old form.
+- Operator accounts remain signed in on the SIC login/control screen with an unavailable notice and working sign out, rather than redirecting to the retired form.
+- Existing Supabase Final Product records and the prior form source remain untouched in the database/Git history for later migration. No data was deleted.
+
 ## 17 November 2026 — Sign out across every staff screen
 - Unified sign out on the SIC Sheet, Manager Dashboard and Manager welcome/choice screen; all show confirmation, disable duplicate clicks, and report failures.
 - SIC sign out attempts to save editable cloud changes before ending the session, refusing to sign out if saving fails.
