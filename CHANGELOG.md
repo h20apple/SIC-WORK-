@@ -2,6 +2,12 @@
 
 Updated: 17 November 2026. This is a product change log, **not** a substitute for the database audit trail. Dates before this entry are approximate unless backed by a linked commit.
 
+## 17 November 2026 — Create accounts inside Accounts tab
+- Moved the existing staff account creation form into **Manager Dashboard → Accounts** instead of directing administrators to the hidden cloud panel.
+- Authorised account administrator (`rossadmin`) can enter username, optional display name, temporary password (12+ characters), and Operator / Charge Hand / Manager role.
+- The form calls the existing authenticated `manage-staff` Edge Function, reports errors in the Accounts tab, clears sensitive fields on success and refreshes the account list.
+- Account creation remains restricted to the authorised administrator; ordinary Managers cannot create users.
+
 ## 17 November 2026 — Connectivity safeguards
 - Added an always-visible offline warning when the browser reports no network connection.
 - Pauses automatic cloud-save scheduling while offline and retries the active editable sheet after reconnecting.
