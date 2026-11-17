@@ -1,3 +1,12 @@
+## 17 November 2026 — Live Products catalogue (Manager-controlled)
+- Created Supabase `public.products` with Deli, R-code, product name, UPC, packs/tray, sample amount, active/verified flags and change audit fields.
+- Imported **91 unique draft products**: Deli 1 (8), Deli 2 (16), Deli 3 (30), Ocado (37). One duplicated Ocado R-code was held out pending resolution. The photo source contains 92 draft entries.
+- Added RLS: signed-in staff can read; only active Managers can insert, update or delete products, enforced in the database, not only in the interface.
+- Added Manager Dashboard → Products tab, Deli filter, add/edit, and explicit Manager verification checkbox.
+- Added live lookup to SIC (verified product name and packs/tray) and Final Product (read-only reference name/UPC/packs per tray); **physical UPC check fields are never automatically populated**.
+- Imported photo transcriptions are intentionally unverified and will not drive automatic filling until a Manager approves them against the original controlled data.
+- Verified policies, live row counts and JavaScript syntax; full browser and real role-permission tests remain outstanding.
+
 # SIC WORK — Change history and operating guide
 
 Updated: 17 November 2026. This is a product change log, **not** a substitute for the database audit trail. Dates before this entry are approximate unless backed by a linked commit.
