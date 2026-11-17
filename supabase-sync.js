@@ -381,7 +381,7 @@ function setManagerSubpage(open){
  $('md-back').hidden=!open;
  $('md-summary').hidden=open;
  $('md-areas').hidden=open;
- $('md-tabs').hidden=open;
+ $('md-tabs').hidden=!!(managerArea&&managerLine);
 }
 $('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','insights','staff','archive','audit','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
 function managerWelcome(){
