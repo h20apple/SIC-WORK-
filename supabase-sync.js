@@ -691,7 +691,7 @@ async function refreshAccount(){
   try {
   const {data:{user:authUser},error:authError}=await sb.auth.getUser();
   if(authError && !authUser && !/session missing|auth session missing/i.test(authError.message||''))throw authError;
-  if(authUser?.id && authUser.id===activeUserId && role){user=authUser;showPermissions();return;}
+  if(authUser?.id && authUser.id===activeUserId && role){user=authUser;if(role==='operator'){window.location.replace('./final-product.html');return;}showPermissions();return;}
   if(!authUser && hadSession){window.sicClearPrivate?.();hadSession=false;}
   if(!authUser){$('manager-dashboard-button').hidden=true;$('manager-dashboard-shortcut').hidden=true;managerView='sheet';window.sicSignedInIdentity=null;staffDisplayName='';$('manager-dashboard').hidden=true;$('manager-choice').hidden=true;$('sb-panel').hidden=false;document.body.classList.remove('manager-home');}
   if(watching){await sb.removeChannel(watching);watching=null;}
@@ -713,8 +713,7 @@ async function refreshAccount(){
       applying=false;
       window.sicCloudApply?.({});
       if(role==='operator'){
-        say('Final Product Sheet is temporarily unavailable while the replacement is prepared. You can sign out here.');
-        showPermissions();
+        window.location.replace('./final-product.html');
         return;
       }
       fillSicIdentity(true);
