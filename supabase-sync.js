@@ -351,14 +351,14 @@ for(const id of ['sb-area','sb-line'])$(id).addEventListener('change',()=>{if(!c
 $('sb-approve').addEventListener('click',async()=>{
   if(role!=='manager'||!current||!confirm('Approve and lock this sheet?'))return;
   clearTimeout(saveTimer);if(!await saveCloud())return;
-  const {error}=await sb.from('sheets').update({status:'approved'}).eq('id',current.id).eq('status','draft');
-  if(error){say('Approval failed: '+errText(error));return;}
+  const {data,error}=await sb.rpc('manager_set_sheet_approval',{p_sheet_id:current.id,p_approve:true});
+  if(error||!data){say('Approval failed: '+(error?errText(error):'Sheet was already changed'));return;}
   await loadSheet(current.id,true);
 });
 $('sb-reopen').addEventListener('click',async()=>{
   if(role!=='manager'||!current||!confirm('Reopen this approved sheet?'))return;
-  const {error}=await sb.from('sheets').update({status:'draft'}).eq('id',current.id).eq('status','approved');
-  if(error){say('Reopen failed: '+errText(error));return;}
+  const {data,error}=await sb.rpc('manager_set_sheet_approval',{p_sheet_id:current.id,p_approve:false});
+  if(error||!data){say('Reopen failed: '+(error?errText(error):'Sheet was already changed'));return;}
   await loadSheet(current.id,true);
 });
 
