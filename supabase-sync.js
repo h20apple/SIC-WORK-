@@ -361,7 +361,7 @@ $('sb-reopen').addEventListener('click',async()=>{
   await loadSheet(current.id,true);
 });
 
-let managerView='sheet',managerTab='overview',managerSheets=[],managerProfiles=[],managerArea=null,managerLine=null;
+let managerView='sheet',managerTab='overview',managerSheets=[],managerProfiles=[],managerArea=null,managerLine=null,managerSearch='',managerFilter='all';
 const mdEl=(tag,content,cls)=>{const el=document.createElement(tag);if(content!==undefined)el.textContent=String(content);if(cls)el.className=cls;return el;};
 $('manager-dashboard-button').addEventListener('click',()=>managerSwitch('dashboard'));
 $('manager-cloud-dashboard-button').addEventListener('click',()=>managerSwitch('dashboard'));
@@ -381,7 +381,7 @@ function setManagerSubpage(open){
  $('md-areas').hidden=open;
  $('md-tabs').hidden=open;
 }
-$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','audit','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
+$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','staff','audit','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
 function managerWelcome(){
  // Managers can open the dashboard from the toolbar at any time.
  // Do not interrupt their SIC Sheet with a login choice overlay.
@@ -395,7 +395,7 @@ document.querySelectorAll('[data-md-tab]').forEach(btn=>btn.addEventListener('cl
  if(btn.dataset.mdTab==='accounts'&&!isRossAdmin())return;
  managerTab=btn.dataset.mdTab;
  setManagerSubpage(true);
- for(const name of ['overview','audit','accounts'])$('md-'+name).hidden=name!==managerTab;
+ for(const name of ['overview','staff','audit','accounts'])$('md-'+name).hidden=name!==managerTab;
  document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab===managerTab)));
  refreshManager();
 }));
@@ -407,6 +407,8 @@ function managerTable(headers,rows){
  for(const row of rows){const tr=mdEl('tr');for(const val of row){const td=mdEl('td');if(val instanceof Node)td.append(val);else td.textContent=String(val??'');tr.append(td);}table.append(tr);}
  return table;
 }
+$('md-search').addEventListener('input',e=>{managerSearch=e.target.value.trim().toLowerCase();if(managerTab==='overview')drawManagerOverview(managerArea,managerLine);});
+$('md-filter').addEventListener('change',e=>{managerFilter=e.target.value;if(managerTab==='overview')drawManagerOverview(managerArea,managerLine);});
 function managerName(id){const p=managerProfiles.find(x=>x.id===id);return p?.display_name||id?.slice(0,8)||'Unknown';}
 function sheetArea(s){return s.payload?.cloud_area||'Unassigned';}
 function sheetLine(s){return s.payload?.cloud_line||'Unassigned';}
@@ -415,23 +417,74 @@ function drawManagerOverview(area=null,line=null){
  setManagerSubpage(!!(area&&line));
  const summary=$('md-summary'),areas=$('md-areas'),recent=$('md-recent');
  summary.replaceChildren();areas.replaceChildren();recent.replaceChildren();
- for(const [name,value] of [['Production lines',12],['Cloud sheets',managerSheets.length],['Awaiting review',managerSheets.filter(s=>s.payload?.endShift&&s.status==='draft').length]]){
-  const c=mdEl('div',undefined,'md-card');c.append(mdEl('div',name),mdEl('h2',value));summary.append(c);
+ const review=managerSheets.filter(s=>s.payload?.endShift&&s.status==='draft');
+ const approved=managerSheets.filter(s=>s.status==='approved');
+ const today=new Date().toLocaleDateString('en-GB');
+ const todaySheets=managerSheets.filter(s=>s.sheet_date===today||s.payload?.date===today);
+ const metrics=[['Saved SIC sheets',managerSheets.length,'All loaded records'],['Needs review',review.length,'End of shift, awaiting approval'],['Approved',approved.length,'Locked and signed off'],['Today',todaySheets.length,today]];
+ for(const [name,value,note] of metrics){
+  const c=mdEl('div',undefined,'md-card md-metric');
+  c.append(mdEl('div',name,'md-metric-label'),mdEl('strong',value,'md-metric-number'),mdEl('small',note));
+  summary.append(c);
  }
  for(let d=1;d<=3;d++){
-  const areaName='Deli '+d,c=mdEl('div',undefined,'md-card');c.append(mdEl('h3',areaName));
+  const areaName='Deli '+d,c=mdEl('div',undefined,'md-card md-area');c.append(mdEl('h3',areaName));
   const grid=mdEl('div',undefined,'md-lines');
-  for(let l=1;l<=4;l++){const lineName='Line '+l,matching=managerSheets.filter(s=>sheetArea(s)===areaName&&sheetLine(s)===lineName);
-   grid.append(managerButton(lineName+' · '+matching.length,()=>drawManagerOverview(areaName,lineName)));
-  }c.append(grid);areas.append(c);
+  for(let l=1;l<=4;l++){
+   const lineName='Line '+l,matching=managerSheets.filter(s=>sheetArea(s)===areaName&&sheetLine(s)===lineName);
+   const pending=matching.filter(s=>s.payload?.endShift&&s.status==='draft').length;
+   const button=managerButton(lineName+' · '+matching.length+(pending?' · '+pending+' review':''),()=>{managerTab='overview';drawManagerOverview(areaName,lineName);});
+   if(pending)button.classList.add('md-needs-review');
+   grid.append(button);
+  }
+  c.append(grid);areas.append(c);
  }
- $('md-selected-title').textContent=area&&line?area+' / '+line+' · Saved sheets':'Recent sheets';
- const chosen=managerSheets.filter(s=>(!area||sheetArea(s)===area)&&(!line||sheetLine(s)===line)).slice(0,50);
- if(!chosen.length){recent.append(mdEl('p','No saved sheets for this selection.'));return;}
- recent.append(managerTable(['Date','Area / line','Owner','Status','Open'],chosen.map(item=>[
-  item.sheet_date||'Undated',sheetArea(item)+' / '+sheetLine(item),item.payload?.cloud_username||managerName(item.owner_id),item.payload?.endShift&&item.status==='draft'?'END OF SHIFT · Review needed':item.status,
-  managerButton('View sheet',async()=>{managerSwitch('sheet');await loadSheet(item.id,true);})
+ $('md-selected-title').textContent=area&&line?area+' / '+line+' · Sheets':'Recent SIC sheets';
+ $('md-search-tools').hidden=!!(area&&line);
+ const filtered=managerSheets.filter(s=>{
+  if(area&&sheetArea(s)!==area)return false;
+  if(line&&sheetLine(s)!==line)return false;
+  if(managerFilter==='review'&&!(s.payload?.endShift&&s.status==='draft'))return false;
+  if(managerFilter==='approved'&&s.status!=='approved')return false;
+  if(managerFilter==='draft'&&s.status!=='draft')return false;
+  if(managerFilter==='today'&&s.sheet_date!==today&&s.payload?.date!==today)return false;
+  const search=[s.sheet_date,s.payload?.date,sheetArea(s),sheetLine(s),s.payload?.cloud_username,managerName(s.owner_id),s.status].join(' ').toLowerCase();
+  return !managerSearch||search.includes(managerSearch);
+ });
+ $('md-results-count').textContent=filtered.length+' matching sheet'+(filtered.length===1?'':'s')+(managerSheets.length>=500?' · showing latest 500 loaded':'');
+ if(!filtered.length){recent.append(mdEl('p','No matching sheets. Try clearing the search or changing the filter.'));return;}
+ const wrapper=mdEl('div',undefined,'md-table-wrap');
+ wrapper.append(managerTable(['Date','Deli / line','Owner','Status','Updated','Action'],filtered.slice(0,100).map(item=>[
+  item.sheet_date||'Undated',
+  sheetArea(item)+' / '+sheetLine(item),
+  item.payload?.cloud_username||managerName(item.owner_id),
+  item.payload?.endShift&&item.status==='draft'?'Needs review':item.status,
+  item.updated_at?new Date(item.updated_at).toLocaleString('en-GB'):'—',
+  managerButton('Open sheet',async()=>{managerSwitch('sheet');await loadSheet(item.id,true);})
  ])));
+ recent.append(wrapper);
+}
+function drawManagerStaff(){
+ const root=$('md-staff-list');root.replaceChildren();
+ const profiles=[...managerProfiles].sort((a,b)=>String(a.display_name||'').localeCompare(String(b.display_name||'')));
+ const counts={operator:0,charge_hand:0,manager:0};
+ for(const p of profiles)if(p.active&&counts[p.role]!==undefined)counts[p.role]++;
+ const overview=mdEl('div',undefined,'md-grid');
+ for(const [label,n] of [['Active staff',profiles.filter(p=>p.active).length],['Operators',counts.operator],['Charge hands',counts.charge_hand],['Managers',counts.manager]]){
+  const card=mdEl('div',undefined,'md-card md-metric');
+  card.append(mdEl('div',label,'md-metric-label'),mdEl('strong',n,'md-metric-number'));
+  overview.append(card);
+ }
+ root.append(overview);
+ const wrapper=mdEl('div',undefined,'md-table-wrap');
+ wrapper.append(managerTable(['Name','Role','Access','SIC sheets'],profiles.map(p=>[
+  p.display_name||p.id.slice(0,8),
+  p.role==='charge_hand'?'Charge hand':p.role==='manager'?'Manager':'Operator',
+  p.active?'Active':'Inactive',
+  managerSheets.filter(s=>s.owner_id===p.id).length
+ ])));
+ root.append(wrapper);
+ if(managerProfiles.length>=300)root.append(mdEl('p','Staff list may be incomplete: showing the first 300 profiles.'));
 }
 async function managerRequest(body){
  const {data:{session}}=await sb.auth.getSession();
@@ -489,6 +542,7 @@ async function refreshManager(){
   if(error)throw error;managerSheets=(data||[]).sort((a,b)=>Number(!!b.payload?.endShift&&b.status==='draft')-Number(!!a.payload?.endShift&&a.status==='draft'));
   drawManagerOverview(managerTab==='overview'?managerArea:null,managerTab==='overview'?managerLine:null);
   if(managerTab!=='overview')setManagerSubpage(true);
+  if(managerTab==='staff')drawManagerStaff();
   if(managerTab==='audit')await drawManagerAudit();
   if(managerTab==='accounts')await drawManagerAccounts();
   $('md-status').textContent='Last refreshed '+new Date().toLocaleTimeString('en-GB');
