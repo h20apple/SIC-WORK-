@@ -18,7 +18,7 @@ test('manager opens dashboard and cannot create or edit SIC records',()=>{
  assert.match(js,/if\(view==='sheet'&&!current\)/);
 });
 test('manager can review and approve existing SIC sheets',()=>{
- assert.match(js,/managerButton\('Review sheet'/);
+ assert.match(js,/managerButton\('Review'/);
  assert.match(js,/\$\('sb-approve'\)\.addEventListener/);
  assert.match(js,/\$\('sb-reopen'\)\.addEventListener/);
  assert.match(html,/manager-review-only/);
