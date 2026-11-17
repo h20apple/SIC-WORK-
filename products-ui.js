@@ -20,7 +20,7 @@ function clear(){
 }
 function edit(p){
  $('prod-id').value=p.id;$('prod-deli').value=p.deli;$('prod-code').value=p.r_code;
- $('prod-name').value=p.name;$('prod-upc').value=p.upc||'';
+ $('prod-name').value=p.name;$('prod-upc').value=p.upc||'';$('prod-au').value=p.au_code||'';
  $('prod-tray').value=p.packs_per_tray??'';$('prod-sample').value=p.sample_amount??'';
  $('prod-verified').checked=!!p.verified;$('prod-active').checked=!!p.active;
  $('prod-editor').open=true;$('prod-editor').scrollIntoView({block:'nearest',behavior:'smooth'});
@@ -35,13 +35,13 @@ function draw(){
  const rows=products.filter(p=>!$('prod-filter').value||p.deli===$('prod-filter').value);
  const table=document.createElement('table');table.style.cssText='width:100%;border-collapse:collapse;font-size:12px';
  const head=document.createElement('tr');
- for(const name of ['Deli','R-code','Product','UPC','Per tray','Samples','Status','Action']){
+ for(const name of ['Deli','R-code','Product','UPC','AU code','Per tray','Samples','Status','Action']){
   const th=document.createElement('th');th.textContent=name;th.style.cssText='padding:8px;text-align:left;background:#e6efea';head.append(th);
  }
  table.append(head);
  for(const p of rows){
   const tr=document.createElement('tr');
-  for(const text of [p.deli,p.r_code,p.name,p.upc,p.packs_per_tray,p.sample_amount,p.verified?'Verified':'Needs review'])cell(tr,text);
+  for(const text of [p.deli,p.r_code,p.name,p.upc,p.au_code,p.packs_per_tray,p.sample_amount,p.verified?'Verified':'Needs review'])cell(tr,text);
   const td=document.createElement('td');const btn=document.createElement('button');btn.type='button';btn.textContent='Edit';btn.addEventListener('click',()=>edit(p));td.append(btn);tr.append(td);table.append(tr);
  }
  root.append(table);
@@ -60,7 +60,7 @@ $('prod-code').addEventListener('blur',()=>{$('prod-code').value=norm(value('pro
 $('prod-form').addEventListener('submit',async event=>{
  event.preventDefault();
  if(!await checkRole()){status('Only Managers can change products.');return;}
- const record={deli:value('prod-deli'),r_code:norm(value('prod-code')),name:value('prod-name'),upc:value('prod-upc')||null,packs_per_tray:numberOrNull('prod-tray'),sample_amount:numberOrNull('prod-sample'),verified:$('prod-verified').checked,active:$('prod-active').checked};
+ const record={deli:value('prod-deli'),r_code:norm(value('prod-code')),name:value('prod-name'),upc:value('prod-upc')||null,au_code:value('prod-au')||null,packs_per_tray:numberOrNull('prod-tray'),sample_amount:numberOrNull('prod-sample'),verified:$('prod-verified').checked,active:$('prod-active').checked};
  if(!/^R\d{3,6}$/.test(record.r_code)||!record.deli||!record.name){status('Enter Deli, R-code and product name.');return;}
  if(record.packs_per_tray!==null&&(!Number.isInteger(record.packs_per_tray)||record.packs_per_tray<1)){status('Packs per tray must be a positive whole number.');return;}
  if(record.sample_amount!==null&&(!Number.isInteger(record.sample_amount)||record.sample_amount<0)){status('Sample amount must be a whole number of zero or more.');return;}
