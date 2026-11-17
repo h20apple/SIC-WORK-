@@ -381,7 +381,7 @@ function setManagerSubpage(open){
  $('md-areas').hidden=open;
  $('md-tabs').hidden=open;
 }
-$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','staff','audit','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
+$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','insights','staff','audit','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
 function managerWelcome(){
  // Managers can open the dashboard from the toolbar at any time.
  // Do not interrupt their SIC Sheet with a login choice overlay.
@@ -395,7 +395,7 @@ document.querySelectorAll('[data-md-tab]').forEach(btn=>btn.addEventListener('cl
  if(btn.dataset.mdTab==='accounts'&&!isRossAdmin())return;
  managerTab=btn.dataset.mdTab;
  setManagerSubpage(true);
- for(const name of ['overview','staff','audit','accounts'])$('md-'+name).hidden=name!==managerTab;
+ for(const name of ['overview','insights','staff','audit','accounts'])$('md-'+name).hidden=name!==managerTab;
  document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab===managerTab)));
  refreshManager();
 }));
@@ -404,7 +404,7 @@ function managerTable(headers,rows){
  const table=mdEl('table',undefined,'md-table'),head=mdEl('tr');
  for(const h of headers)head.append(mdEl('th',h));
  table.append(head);
- for(const row of rows){const tr=mdEl('tr');for(const val of row){const td=mdEl('td');if(val instanceof Node)td.append(val);else td.textContent=String(val??'');tr.append(td);}table.append(tr);}
+ for(const row of rows){const tr=mdEl('tr');row.forEach((val,i)=>{const td=mdEl('td');td.dataset.label=String(headers[i]||'');if(val instanceof Node)td.append(val);else td.textContent=String(val??'');tr.append(td);});table.append(tr);}
  return table;
 }
 $('md-search').addEventListener('input',e=>{managerSearch=e.target.value.trim().toLowerCase();if(managerTab==='overview')drawManagerOverview(managerArea,managerLine);});
@@ -463,6 +463,51 @@ function drawManagerOverview(area=null,line=null){
   managerButton('Open sheet',async()=>{managerSwitch('sheet');await loadSheet(item.id,true);})
  ])));
  recent.append(wrapper);
+}
+function drawManagerInsights(){
+ const root=$('md-insights-list');root.replaceChildren();
+ const number=v=>{const n=Number(String(v??'').trim());return Number.isFinite(n)&&n>=0?n:0;};
+ let produced=0,waste=0,bursts=0,rows=0,withData=0;
+ const deliTotals=new Map();
+ for(const sheet of managerSheets){
+  const p=sheet.payload||{};let sheetProduced=0;
+  const count=Math.min(100,Math.max(0,Number(p.rowCount)||9));
+  for(let i=0;i<count;i++){
+   const hasProduct=String(p['r'+i+'c2']||'').trim();
+   if(!hasProduct)continue;
+   const packs=number(p['r'+i+'c7']);
+   const loss=number(p['r'+i+'c10'])+number(p['r'+i+'c11']);
+   const burst=number(p['r'+i+'c12']);
+   if(packs||loss||burst){rows++;sheetProduced+=packs;produced+=packs;waste+=loss;bursts+=burst;}
+  }
+  if(sheetProduced){withData++;const area=sheetArea(sheet);deliTotals.set(area,(deliTotals.get(area)||0)+sheetProduced);}
+ }
+ const stats=mdEl('div',undefined,'md-grid');
+ for(const [label,value,detail] of [['Packs produced',produced.toLocaleString('en-GB'),'Recorded SIC packs'],['Waste + rejects',waste.toLocaleString('en-GB'),'Despatch waste and Dell rejects'],['Burst packs',bursts.toLocaleString('en-GB'),'Recorded Dell burst packs'],['Rows with figures',rows.toLocaleString('en-GB'),withData+' sheets with output']]){
+  const c=mdEl('div',undefined,'md-card md-metric');
+  c.append(mdEl('div',label,'md-metric-label'),mdEl('strong',value,'md-metric-number'),mdEl('small',detail));stats.append(c);
+ }
+ root.append(stats);
+ const section=mdEl('div',undefined,'md-card');section.append(mdEl('h3','Packs produced by deli'));
+ if(!deliTotals.size)section.append(mdEl('p','No recorded pack figures yet.'));
+ else{
+  const max=Math.max(...deliTotals.values(),1);
+  for(const [area,value] of [...deliTotals].sort((a,b)=>b[1]-a[1])){
+   const line=mdEl('div',undefined,'md-bar-row'),label=mdEl('div',area+' · '+value.toLocaleString('en-GB'));
+   const track=mdEl('div',undefined,'md-bar-track'),bar=mdEl('div',undefined,'md-bar-fill');
+   bar.style.width=Math.max(0,Math.min(100,value/max*100))+'%';track.append(bar);line.append(label,track);section.append(line);
+  }
+ }
+ section.append(mdEl('p','Figures are summed from the latest '+managerSheets.length+' loaded SIC sheets (up to 500). They are not live production readings. Review continuation rows and data quality before using totals for official reporting.','md-insight-note'));
+ root.append(section);
+ const csv=managerButton('Download sheet summary (CSV)',()=>{
+  const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
+  const header=['Date','Deli','Line','Owner','Status','Updated'];
+  const lines=[header,...managerSheets.map(sh=>[sh.sheet_date,sheetArea(sh),sheetLine(sh),sh.payload?.cloud_username||managerName(sh.owner_id),sh.status,sh.updated_at])];
+  const blob=new Blob(['\\uFEFF'+lines.map(row=>row.map(quote).join(',')).join('\\r\\n')],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='SIC-manager-sheet-summary.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+ });
+ root.append(csv);
 }
 function drawManagerStaff(){
  const root=$('md-staff-list');root.replaceChildren();
@@ -542,6 +587,7 @@ async function refreshManager(){
   if(error)throw error;managerSheets=(data||[]).sort((a,b)=>Number(!!b.payload?.endShift&&b.status==='draft')-Number(!!a.payload?.endShift&&a.status==='draft'));
   drawManagerOverview(managerTab==='overview'?managerArea:null,managerTab==='overview'?managerLine:null);
   if(managerTab!=='overview')setManagerSubpage(true);
+  if(managerTab==='insights')drawManagerInsights();
   if(managerTab==='staff')drawManagerStaff();
   if(managerTab==='audit')await drawManagerAudit();
   if(managerTab==='accounts')await drawManagerAccounts();
