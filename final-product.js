@@ -79,7 +79,7 @@ async function account(){
   if(!error&&data?.active&&['operator','charge_hand','manager'].includes(data.role))role=data.role;
  }
  // Every role has one default landing page, independent of the previous user.
- if(role==='charge_hand'||role==='manager'){
+ if((role==='charge_hand'||role==='manager')&&!new URLSearchParams(window.location.search).has('view')){
   window.location.replace('./index.html');
   return;
  }
