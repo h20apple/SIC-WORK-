@@ -29,6 +29,7 @@ function showPermissions() {
   $('sb-panel').hidden = managerView==='dashboard';
   $('manager-dashboard-button').hidden = role !== 'manager';
   $('manager-dashboard-shortcut').hidden = role !== 'manager' || managerView==='dashboard';
+  $('md-open-sheet').hidden = role==='manager' && !current;
   $('sb-role').textContent = role || '';
   $('sb-approve').hidden = role !== 'manager' || !current || current.status === 'approved';
   $('sb-reopen').hidden = role !== 'manager' || !current || current.status !== 'approved';
@@ -367,6 +368,7 @@ $('manager-dashboard-button').addEventListener('click',()=>managerSwitch('dashbo
 $('manager-cloud-dashboard-button').addEventListener('click',()=>managerSwitch('dashboard'));
 function managerSwitch(view){
  if(role!=='manager')return;
+ if(view==='sheet'&&!current){$('md-status').textContent='Choose a saved staff SIC sheet to review first.';return;}
  managerView=view;
  document.body.classList.toggle('manager-home',view==='dashboard');
  $('manager-dashboard').hidden=view!=='dashboard';
@@ -459,7 +461,7 @@ function drawManagerOverview(area=null,line=null){
   item.payload?.cloud_username||managerName(item.owner_id),
   item.payload?.endShift&&item.status==='draft'?'Needs review':item.status,
   item.updated_at?new Date(item.updated_at).toLocaleString('en-GB'):'—',
-  managerButton('Open sheet',async()=>{managerSwitch('sheet');await loadSheet(item.id,true);})
+  managerButton('Review sheet',async()=>{await loadSheet(item.id,true);if(current?.id===item.id)managerSwitch('sheet');})
  ])));
  recent.append(wrapper);
 }
