@@ -2,6 +2,12 @@
 
 Updated: 17 November 2026. This is a product change log, **not** a substitute for the database audit trail. Dates before this entry are approximate unless backed by a linked commit.
 
+## 17 November 2026 — Fix cross-account page routing
+- Fixed Final Product showing as the default landing page after a different user signs in on the same device. Operator defaults to Final Product; Charge Hand and Manager default to SIC / Manager dashboard.
+- On account identity changes, Final Product clears its previous selected record and form before loading the new account, and ignores outdated account lookup responses.
+- Users can still deliberately open Final Product from the SIC page using its dedicated link (`?view=1`); that does not change their default landing page.
+- Role switching and data isolation require real multi-account browser testing; no production user data was changed for this fix.
+
 ## 17 November 2026 — Create accounts inside Accounts tab
 - Moved the existing staff account creation form into **Manager Dashboard → Accounts** instead of directing administrators to the hidden cloud panel.
 - Authorised account administrator (`rossadmin`) can enter username, optional display name, temporary password (12+ characters), and Operator / Charge Hand / Manager role.
