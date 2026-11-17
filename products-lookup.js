@@ -7,7 +7,7 @@ async function load(){
  const {data:{user}}=await sb.auth.getUser();
  if(!user){products=[];identity=null;return;}
  if(identity!==user.id){products=[];identity=user.id;}
- const {data,error}=await sb.from('products').select('deli,r_code,name,upc,packs_per_tray,sample_amount').eq('verified',true).eq('active',true).limit(1000);
+ const {data,error}=await sb.from('products').select('deli,r_code,name,upc,au_code,packs_per_tray,sample_amount').eq('verified',true).eq('active',true).limit(1000);
  if(!error)products=data||[];
 }
 function match(deli,code){return products.find(p=>p.deli===deli&&p.r_code===normalize(code));}
