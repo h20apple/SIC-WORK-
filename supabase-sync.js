@@ -504,7 +504,7 @@ function drawManagerInsights(){
   const quote=v=>'"'+String(v??'').replace(/"/g,'""')+'"';
   const header=['Date','Deli','Line','Owner','Status','Updated'];
   const lines=[header,...managerSheets.map(sh=>[sh.sheet_date,sheetArea(sh),sheetLine(sh),sh.payload?.cloud_username||managerName(sh.owner_id),sh.status,sh.updated_at])];
-  const blob=new Blob(['\\uFEFF'+lines.map(row=>row.map(quote).join(',')).join('\\r\\n')],{type:'text/csv;charset=utf-8'});
+  const blob=new Blob(['\uFEFF'+lines.map(row=>row.map(quote).join(',')).join('\r\n')],{type:'text/csv;charset=utf-8'});
   const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='SIC-manager-sheet-summary.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
  });
  root.append(csv);
