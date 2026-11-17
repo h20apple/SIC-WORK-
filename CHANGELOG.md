@@ -2,6 +2,11 @@
 
 Updated: 17 November 2026. This is a product change log, **not** a substitute for the database audit trail. Dates before this entry are approximate unless backed by a linked commit.
 
+## 17 November 2026 — Manager dashboard sign out
+- Added a visible **Sign out** button in the Manager Dashboard header, including on the dashboard view where the cloud controls are hidden.
+- Requires confirmation, signs out through Supabase Auth, clears private SIC browser state and returns to the login page.
+- On failure, the dashboard reports the error instead of pretending sign out succeeded.
+
 ## 17 November 2026 — Fix cross-account page routing
 - Fixed Final Product showing as the default landing page after a different user signs in on the same device. Operator defaults to Final Product; Charge Hand and Manager default to SIC / Manager dashboard.
 - On account identity changes, Final Product clears its previous selected record and form before loading the new account, and ignores outdated account lookup responses.
