@@ -54,7 +54,7 @@ async function refresh(){
  try{
   const {data:{user}}=await sb.auth.getUser();
   if(!user){matches=[];render();status('Sign in to view operator records.');return;}
-  const {data,error}=await sb.from('final_product_checks').select('id,deli,line,production_date,r_code,total_trays,burst_packs,payload,updated_at').eq('deli',deli).eq('production_date',date).order('updated_at',{ascending:false}).limit(150);
+  const {data,error}=await sb.from('final_product_checks').select('id,deli,line,production_date,r_code,total_trays,burst_packs,payload,updated_at').eq('deli',deli).eq('production_date',date).in('line',[line,'Line '+line]).order('updated_at',{ascending:false}).limit(150);
   if(error)throw error;
   if(lastKey!==key())return;
   matches=(data||[]).filter(x=>lineNumber(x.line)===line);
@@ -67,4 +67,4 @@ $('sb-area').addEventListener('change',refresh);
 $('sb-line').addEventListener('change',refresh);
 document.addEventListener('change',e=>{if(e.target?.dataset?.key==='date')refresh();});
 sb.auth.onAuthStateChange((event)=>{if(event==='SIGNED_OUT'){matches=[];render();status('Sign in to view matching checks.');}else if(event==='SIGNED_IN')setTimeout(refresh,0);});
-setInterval(()=>{if(!document.hidden&&$('fp-match-panel').offsetParent!==null&&key()!==lastKey)refresh();},5000);
+setInterval(()=>{if(!document.hidden&&$('fp-match-panel').offsetParent!==null)refresh();},30000);
