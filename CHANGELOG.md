@@ -2,6 +2,11 @@
 
 Updated: 17 November 2026. This is a product change log, **not** a substitute for the database audit trail. Dates before this entry are approximate unless backed by a linked commit.
 
+## 17 November 2026 — Connectivity safeguards
+- Added an always-visible offline warning when the browser reports no network connection.
+- Pauses automatic cloud-save scheduling while offline and retries the active editable sheet after reconnecting.
+- This is **not** a guaranteed offline queue: unsynced edits may still be lost if browser storage is cleared, the user signs out, or the device fails. Cloud status must be verified after reconnecting.
+
 ## 17 November 2026 — Manager security and recovery
 - Managers open the Dispatch Control dashboard first. The SIC form is a **read-only review view** for Managers.
 - Charge Hands create and edit draft SIC Sheets. Operators use the Final Product Sheet.
