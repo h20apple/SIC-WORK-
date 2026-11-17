@@ -335,7 +335,7 @@ $('sb-login').addEventListener('submit',async e=>{
 });
 $('sb-create-user').addEventListener('submit',async e=>{
   e.preventDefault();
-  if(role!=='manager')return;
+  if(role!=='manager'||!isRossAdmin())return;
   const {data:{session}}=await sb.auth.getSession();
   if(!session)return;
   const payload={username:$('sb-new-username').value.trim(),password:$('sb-new-password').value,role:$('sb-new-role').value,display_name:$('sb-new-name').value.trim()};
@@ -343,8 +343,11 @@ $('sb-create-user').addEventListener('submit',async e=>{
     const response=await fetch(supabaseUrl+'/functions/v1/manage-staff',{method:'POST',headers:{'Content-Type':'application/json','apikey':supabasePublishableKey,'Authorization':'Bearer '+session.access_token},body:JSON.stringify(payload)});
     const result=await response.json();
     if(!response.ok)throw Error(result.error||'Failed to create user');
-    $('sb-new-password').value='';say('Staff account created: '+result.username+' · '+result.role);
-  }catch(error){say('Create user failed: '+errText(error));}
+    $('sb-new-password').value='';$('sb-new-username').value='';$('sb-new-name').value='';
+    $('md-create-status').textContent='Account created: '+result.username+' · '+result.role;
+    say('Staff account created: '+result.username+' · '+result.role);
+    await drawManagerAccounts();
+  }catch(error){$('md-create-status').textContent='Create account failed: '+errText(error);say('Create user failed: '+errText(error));}
 });
 $('sb-logout').addEventListener('click',async()=>{clearTimeout(saveTimer);if(current && canEdit() && !await saveCloud()){say('Save failed. Please save a backup before signing out.');return;}if(!current && !confirm('Any local-only sheet on this device will be cleared when you sign out. Export a backup first. Continue?'))return;const {error}=await sb.auth.signOut();if(error)say('Sign-out failed: '+errText(error));});
 $('sb-new').addEventListener('click',async()=>{
