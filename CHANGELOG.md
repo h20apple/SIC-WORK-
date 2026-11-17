@@ -2,6 +2,12 @@
 
 Updated: 17 November 2026. This is a product change log, **not** a substitute for the database audit trail. Dates before this entry are approximate unless backed by a linked commit.
 
+## 17 November 2026 — Sign out across every staff screen
+- Unified sign out on the SIC Sheet, Manager Dashboard and Manager welcome/choice screen; all show confirmation, disable duplicate clicks, and report failures.
+- SIC sign out attempts to save editable cloud changes before ending the session, refusing to sign out if saving fails.
+- Final Product sign out now handles errors, clears the prior form and saved-record selection, and returns to the sign-in page.
+- Verified both JavaScript files parse and all four sign-out buttons/handlers exist. Live multi-user browser sign-out tests remain outstanding.
+
 ## 17 November 2026 — Manager dashboard sign out
 - Added a visible **Sign out** button in the Manager Dashboard header, including on the dashboard view where the cloud controls are hidden.
 - Requires confirmation, signs out through Supabase Auth, clears private SIC browser state and returns to the login page.
