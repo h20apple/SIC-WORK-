@@ -7,3 +7,19 @@ test('manager values use textContent, not dynamic HTML',()=>{assert.match(js,/el
 
 test('production insights and CSV export are available',()=>{assert.match(html,/id="md-insights-list"/);assert.match(js,/function drawManagerInsights\(/);assert.match(js,/Download sheet summary \(CSV\)/);assert.match(js,/managerTab==='insights'/);});
 test('phone layout uses card tables and compact metrics',()=>{assert.match(html,/@media\(max-width:700px\)/);assert.match(html,/content:attr\(data-label\)/);assert.match(js,/td\.dataset\.label=/);});
+
+test('manager opens dashboard and cannot create or edit SIC records',()=>{
+ assert.match(js,/managerWelcome\(\)[\s\S]*?managerSwitch\('dashboard'\)/);
+ assert.match(js,/role==='charge_hand' && current && current\.status === 'draft'/);
+ assert.match(js,/\$\('sb-new'\)\.disabled = role!=='charge_hand'/);
+ assert.match(js,/el\.disabled = role==='manager'/);
+ assert.match(js,/role==='manager' \|\| !!current/);
+ assert.match(js,/Only Charge Hands can create SIC sheets/);
+ assert.match(js,/if\(view==='sheet'&&!current\)/);
+});
+test('manager can review and approve existing SIC sheets',()=>{
+ assert.match(js,/managerButton\('Review sheet'/);
+ assert.match(js,/\$\('sb-approve'\)\.addEventListener/);
+ assert.match(js,/\$\('sb-reopen'\)\.addEventListener/);
+ assert.match(html,/manager-review-only/);
+});
