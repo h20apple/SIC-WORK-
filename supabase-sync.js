@@ -349,6 +349,21 @@ $('sb-create-user').addEventListener('submit',async e=>{
     await drawManagerAccounts();
   }catch(error){$('md-create-status').textContent='Create account failed: '+errText(error);say('Create user failed: '+errText(error));}
 });
+$('md-logout').addEventListener('click',async()=>{
+ if(role!=='manager')return;
+ if(!confirm('Sign out of the Manager Dashboard?'))return;
+ const button=$('md-logout');button.disabled=true;
+ $('md-status').textContent='Signing out…';
+ try{
+  const {error}=await sb.auth.signOut();
+  if(error)throw error;
+  window.sicClearPrivate?.();
+  window.location.replace('./index.html');
+ }catch(error){
+  $('md-status').textContent='Sign out failed: '+errText(error);
+  button.disabled=false;
+ }
+});
 $('sb-logout').addEventListener('click',async()=>{clearTimeout(saveTimer);if(current && canEdit() && !await saveCloud()){say('Save failed. Please save a backup before signing out.');return;}if(!current && !confirm('Any local-only sheet on this device will be cleared when you sign out. Export a backup first. Continue?'))return;const {error}=await sb.auth.signOut();if(error)say('Sign-out failed: '+errText(error));});
 $('sb-new').addEventListener('click',async()=>{
   if(!user||role!=='charge_hand'){say('Only Charge Hands can create SIC sheets. Managers review existing sheets.');return;}
