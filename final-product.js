@@ -60,16 +60,33 @@ async function save(){
  }finally{$('save').disabled=false;}
 }
 function reset(){loading=true;current=null;$('delete').disabled=true;document.querySelectorAll('#work input,#work textarea').forEach(el=>el.value='');document.querySelectorAll('#work select').forEach(el=>el.value='');$('saved').value='';loading=false;status('New product entry ready.');}
+let accountGeneration=0;
 async function account(){
- const {data:{user:account}}=await sb.auth.getUser();user=account;role=null;
+ const generation=++accountGeneration;
+ const {data:{user:account},error:authError}=await sb.auth.getUser();
+ if(generation!==accountGeneration)return;
+ if(authError&&!account){status('Unable to verify account. Please sign in again.');return;}
+ const previousId=user?.id;
+ if(previousId!==account?.id){
+  clearTimeout(timer);timer=null;
+  reset();
+  $('saved').replaceChildren(new Option('Choose saved product…',''));
+ }
+ user=account;role=null;current=null;
  if(user){
-  const {data}=await sb.from('profiles').select('role,active').eq('id',user.id).single();
-  if(data?.active&&['operator','charge_hand','manager'].includes(data.role))role=data.role;
+  const {data,error}=await sb.from('profiles').select('role,active').eq('id',user.id).single();
+  if(generation!==accountGeneration)return;
+  if(!error&&data?.active&&['operator','charge_hand','manager'].includes(data.role))role=data.role;
+ }
+ // Every role has one default landing page, independent of the previous user.
+ if(role==='charge_hand'||role==='manager'){
+  window.location.replace('./index.html');
+  return;
  }
  $('login-section').hidden=!!role;$('work').hidden=!role;$('logout').hidden=!role;
  $('identity').textContent=role?user.email.split('@')[0]+' · '+role:'';
- $('sic-link').hidden=!['charge_hand','manager'].includes(role);
- if(role){await list();status('Signed in · Final Product Sheet ready.');}
+ $('sic-link').hidden=true;
+ if(role){await list();if(generation!==accountGeneration)return;status('Signed in · Final Product Sheet ready.');}
  else status('Sign in with an active staff account.');
 }
 $('login').addEventListener('submit',async e=>{
