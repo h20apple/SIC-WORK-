@@ -30,9 +30,10 @@ function updateFinal(input){
  const tr=input.closest('tr');if(!tr||tr.parentElement?.id!=='rows')return;
  const deli=document.getElementById('deli')?.value||'';
  const p=match(deli,input.value);if(!p)return;
- setIfSafe(tr.querySelector('[data-col="upcTray"]'),p.upc);
- setIfSafe(tr.querySelector('[data-col="upcLabel"]'),p.upc);
- // Actual printed labels must still be physically verified by the operator.
+ input.title='Approved product: '+p.name+' · Reference UPC: '+(p.upc||'not recorded')+' · Packs/tray: '+(p.packs_per_tray??'unknown');
+ // UPC-on-label and UPC-on-tray are observed verification checks; do not pre-fill them.
+ const status=document.getElementById('status');
+ if(status)status.textContent='Product reference: '+p.name+' · UPC '+(p.upc||'not recorded')+' · '+(p.packs_per_tray??'?')+' packs/tray. Verify physical labels independently.';
 }
 document.addEventListener('change',event=>{
  const el=event.target;
