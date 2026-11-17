@@ -185,9 +185,7 @@ $('saved').addEventListener('change',async()=>{
 });
 $('pack-date').addEventListener('input',()=>{$('pack-date').value=dateFmt($('pack-date').value);});
 
-document.querySelectorAll('#work input,#work select,#work textarea').forEach(el=>el.addEventListener('change',()=>{
- if(!current||loading||!role)return;
- clearTimeout(timer);timer=setTimeout(save,1400);
-}));
+$('work').addEventListener('change',scheduleSave);
+$('add-row').addEventListener('click',()=>{addRow();scheduleSave();});
 sb.auth.onAuthStateChange((event)=>{if(event==='SIGNED_IN'||event==='SIGNED_OUT'||event==='INITIAL_SESSION')setTimeout(account,0);});
-account();
+reset();account();
