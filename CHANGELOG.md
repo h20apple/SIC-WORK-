@@ -1,3 +1,11 @@
+## 17 November 2026 — Exact Deli and Line Final Product → SIC matching
+- SIC now displays saved operator Final Product checks only when **Deli + Line + pack date** match exactly (line labels normalized, e.g. `1` and `Line 1`).
+- A Charge Hand may fill a blank SIC R-code row from a matching operator record; existing SIC entries are never overwritten.
+- The matching panel refreshes every 30 seconds while visible and supports manual Refresh.
+- No cross-line copying. Operator tray counts, rejects, waste, sample counts and label-verification results are **not** automatically copied as SIC production totals.
+- Final Product continues to show approved product UPC as reference; the observed UPC-on-label / UPC-on-tray verification fields are intentionally not auto-completed.
+- JavaScript syntax and matching checks passed. Requires real two-account/browser validation before operational reliance.
+
 ## 17 November 2026 — Live Products catalogue (Manager-controlled)
 - Created Supabase `public.products` with Deli, R-code, product name, UPC, packs/tray, sample amount, active/verified flags and change audit fields.
 - Imported **91 unique draft products**: Deli 1 (8), Deli 2 (16), Deli 3 (30), Ocado (37). One duplicated Ocado R-code was held out pending resolution. The photo source contains 92 draft entries.
