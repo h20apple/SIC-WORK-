@@ -292,8 +292,28 @@ async function createAutoSheet(){
   say('Cloud sheet created · autosave enabled');
  }finally{autoCreateBusy=false;}
 }
+// Network state is advisory: a connected device may still be unable to reach Supabase.
+function updateNetworkNotice(){
+ const notice=$('cloud-network-notice');if(!notice)return;
+ const offline=!navigator.onLine;
+ notice.hidden=!offline;
+ notice.textContent=offline?'Offline: changes may be saved on this device, but cloud sync is paused. Keep this browser open and check the cloud status after reconnecting.':'';
+}
+window.addEventListener('offline',()=>{
+ updateNetworkNotice();
+ if(saveTimer){clearTimeout(saveTimer);saveTimer=null;}
+ say('Offline · cloud changes pending. Do not clear browser data.');
+});
+window.addEventListener('online',()=>{
+ updateNetworkNotice();
+ if(!user||!role)return;
+ if(current&&canEdit()){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveCloud(),800);}
+ else if(!current&&role==='charge_hand'){clearTimeout(saveTimer);saveTimer=setTimeout(()=>createAutoSheet(),800);}
+});
+updateNetworkNotice();
 window.addEventListener('sic-local-saved',()=>{
   if(applying||!user||!role)return;
+  if(!navigator.onLine){updateNetworkNotice();say('Offline · saved locally; cloud sync pending.');return;}
   clearTimeout(saveTimer);
   if(!current){saveTimer=setTimeout(createAutoSheet,650);return;}
   if(!canEdit())return;
