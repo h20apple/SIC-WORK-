@@ -132,7 +132,17 @@ async function account(){
  $('login-section').hidden=!!role;$('work').hidden=!role;$('logout').hidden=!role;
  $('identity').textContent=role?user.email.split('@')[0]+' · '+role:'';
  $('sic-link').hidden=role==='operator';
- if(role){await list();if(generation!==accountGeneration)return;status('Signed in · Final Product Sheet ready.');}
+ if(role){
+  await list();
+  if(generation!==accountGeneration)return;
+  const requested=new URLSearchParams(window.location.search).get('sheet');
+  if(requested&&/^[0-9a-f-]{36}$/i.test(requested)){
+   const {data:requestedRow,error}=await sb.from('final_product_checks').select('*').eq('id',requested).single();
+   if(generation!==accountGeneration)return;
+   if(!error&&requestedRow){show(requestedRow);status('Opened matching Final Product sheet.');}
+   else status('Requested Final Product sheet is unavailable.');
+  }else status('Signed in · Final Product Sheet ready.');
+ }
  else status('Sign in with an active staff account.');
 }
 $('login').addEventListener('submit',async e=>{
