@@ -18,7 +18,7 @@ test('HTML injection sinks are limited to audited static literals and clearing',
  const final=fs.readFileSync('final-product.js','utf8');
  const uses=(s)=>[...s.matchAll(/\.innerHTML\s*=\s*([^;]+);/g)].map(m=>m[1].trim());
  assert.deepEqual(uses(sic),['printHeaders[i]','\'\'','\'\'','\'\'']);
- assert.deepEqual(uses(sync),["'<option value=\"\" >Choose saved sheet…</option>'".replace(' \\>','>')]);
+ assert.deepEqual(uses(sync), [`\'<option value="">Choose saved sheet…</option>\'`]);
  assert.deepEqual(uses(final),[]);
  assert.match(sic,/screen\.textContent=h/);
  assert.match(sic,/span\.textContent=inp\.value/);
