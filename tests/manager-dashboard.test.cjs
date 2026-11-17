@@ -23,3 +23,13 @@ test('manager can review and approve existing SIC sheets',()=>{
  assert.match(js,/\$\('sb-reopen'\)\.addEventListener/);
  assert.match(html,/manager-review-only/);
 });
+
+test('manager SIC deletion requires explicit confirmation and checks deleted row',()=>{
+ assert.match(js,/async function deleteManagerSheet\(item\)/);
+ assert.match(js,/role!=='manager'/);
+ assert.match(js,/type DELETE/);
+ assert.match(js,/typed!=='DELETE'/);
+ assert.match(js,/\.from\('sheets'\)\.delete\(\)\.eq\('id',item\.id\)\.select\('id'\)/);
+ assert.match(js,/if\(!data\?\.length\)/);
+ assert.match(html,/md-delete/);
+});
