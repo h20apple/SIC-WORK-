@@ -412,7 +412,7 @@ $('sb-reopen').addEventListener('click',async()=>{
   await loadSheet(current.id,true);
 });
 
-let managerView='sheet',managerTab='overview',managerSheets=[],managerProfiles=[],managerArea=null,managerLine=null,managerSearch='',managerFilter='all';
+let managerView='sheet',managerTab='overview',managerSheets=[],managerFinalChecks=[],managerProfiles=[],managerArea=null,managerLine=null,managerSearch='',managerFilter='all';
 const mdEl=(tag,content,cls)=>{const el=document.createElement(tag);if(content!==undefined)el.textContent=String(content);if(cls)el.className=cls;return el;};
 $('manager-dashboard-button').addEventListener('click',()=>managerSwitch('dashboard'));
 $('manager-cloud-dashboard-button').addEventListener('click',()=>managerSwitch('dashboard'));
@@ -461,6 +461,17 @@ function managerTable(headers,rows){
 $('md-search').addEventListener('input',e=>{managerSearch=e.target.value.trim().toLowerCase();if(managerTab==='overview')drawManagerOverview(managerArea,managerLine);});
 $('md-filter').addEventListener('change',e=>{managerFilter=e.target.value;if(managerTab==='overview')drawManagerOverview(managerArea,managerLine);});
 function managerName(id){const p=managerProfiles.find(x=>x.id===id);return p?.display_name||id?.slice(0,8)||'Unknown';}
+function normalizedManagerLine(value){const match=String(value||'').trim().match(/^(?:Line\\s*)?(\\d+)$/i);return match?'Line '+match[1]:String(value||'').trim();}
+function matchingFinalChecks(area,line){return managerFinalChecks.filter(f=>f.deli===area&&normalizedManagerLine(f.line)===normalizedManagerLine(line));}
+function finalProductActions(records){
+ const wrapper=mdEl('div',undefined,'md-table-wrap');
+ wrapper.append(managerTable(['Date','R-code','Owner','Updated','Action'],records.slice(0,100).map(item=>[
+ item.production_date||'Undated',item.r_code||'—',managerName(item.owner_id),
+ item.updated_at?new Date(item.updated_at).toLocaleString('en-GB'):'—',
+ managerButton('Open Final Product',()=>{window.location.href='./final-product.html?view=1&sheet='+encodeURIComponent(item.id);})
+ ])));
+ return wrapper;
+}
 function sheetArea(s){return s.payload?.cloud_area||'Unassigned';}
 function sheetLine(s){return s.payload?.cloud_line||'Unassigned';}
 async function deleteManagerSheet(item){
@@ -520,9 +531,9 @@ function drawManagerOverview(area=null,line=null){
   const areaName='Deli '+d,c=mdEl('div',undefined,'md-card md-area');c.append(mdEl('h3',areaName));
   const grid=mdEl('div',undefined,'md-lines');
   for(let l=1;l<=4;l++){
-   const lineName='Line '+l,matching=managerSheets.filter(s=>sheetArea(s)===areaName&&sheetLine(s)===lineName);
+   const lineName='Line '+l,matching=managerSheets.filter(s=>sheetArea(s)===areaName&&normalizedManagerLine(sheetLine(s))===lineName),finalMatching=matchingFinalChecks(areaName,lineName);
    const pending=matching.filter(s=>s.payload?.endShift&&s.status==='draft').length;
-   const button=managerButton(lineName+' · '+matching.length+(pending?' · '+pending+' review':''),()=>{managerTab='overview';drawManagerOverview(areaName,lineName);});
+   const button=managerButton(lineName+' · SIC '+matching.length+' · Final '+finalMatching.length+(pending?' · '+pending+' review':''),()=>{managerTab='overview';drawManagerOverview(areaName,lineName);});
    if(pending)button.classList.add('md-needs-review');
    grid.append(button);
   }
@@ -541,7 +552,15 @@ function drawManagerOverview(area=null,line=null){
   return !managerSearch||search.includes(managerSearch);
  });
  $('md-results-count').textContent=filtered.length+' matching sheet'+(filtered.length===1?'':'s')+(managerSheets.length>=500?' · showing latest 500 loaded':'');
- if(!filtered.length){recent.append(mdEl('p','No matching sheets. Try clearing the search or changing the filter.'));return;}
+ const finals=area&&line?matchingFinalChecks(area,line):[];
+ if(area&&line){
+  const heading=mdEl('h3','Final Product sheets · '+finals.length);
+  recent.append(heading);
+  if(finals.length)recent.append(finalProductActions(finals));
+  else recent.append(mdEl('p','No Final Product sheets saved for this deli and line.'));
+  recent.append(mdEl('h3','SIC sheets · '+filtered.length));
+ }
+ if(!filtered.length){recent.append(mdEl('p','No matching SIC sheets.'));return;}
  const wrapper=mdEl('div',undefined,'md-table-wrap');
  wrapper.append(managerTable(['Date','Deli / line','Owner','Status','Updated','Action'],filtered.slice(0,100).map(item=>[
   item.sheet_date||'Undated',
@@ -673,7 +692,11 @@ async function refreshManager(){
   const {data:profiles,error:profileError}=await sb.from('profiles').select('id,display_name,role,active').limit(300);
   if(profileError)throw profileError;managerProfiles=profiles||[];
   const {data,error}=await sb.from('sheets').select('id,owner_id,sheet_date,status,payload,updated_at').order('updated_at',{ascending:false}).limit(500);
-  if(error)throw error;managerSheets=(data||[]).sort((a,b)=>Number(!!b.payload?.endShift&&b.status==='draft')-Number(!!a.payload?.endShift&&a.status==='draft'));
+  if(error)throw error;
+  const {data:finalData,error:finalError}=await sb.from('final_product_checks').select('id,owner_id,production_date,deli,line,r_code,updated_at').order('updated_at',{ascending:false}).limit(1000);
+  if(finalError)throw finalError;
+  managerFinalChecks=finalData||[];
+  managerSheets=(data||[]).sort((a,b)=>Number(!!b.payload?.endShift&&b.status==='draft')-Number(!!a.payload?.endShift&&a.status==='draft'));
   drawManagerOverview(managerTab==='overview'?managerArea:null,managerTab==='overview'?managerLine:null);
   if(managerTab!=='overview')setManagerSubpage(true);
   if(managerTab==='insights')drawManagerInsights();
