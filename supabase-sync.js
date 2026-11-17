@@ -383,7 +383,7 @@ function setManagerSubpage(open){
  $('md-areas').hidden=open;
  $('md-tabs').hidden=open;
 }
-$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','insights','staff','audit','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
+$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','insights','staff','archive','audit','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
 function managerWelcome(){
  $('manager-choice').hidden=true;
  managerSwitch('dashboard');
@@ -396,7 +396,7 @@ document.querySelectorAll('[data-md-tab]').forEach(btn=>btn.addEventListener('cl
  if(btn.dataset.mdTab==='accounts'&&!isRossAdmin())return;
  managerTab=btn.dataset.mdTab;
  setManagerSubpage(true);
- for(const name of ['overview','insights','staff','audit','accounts'])$('md-'+name).hidden=name!==managerTab;
+ for(const name of ['overview','insights','staff','archive','audit','accounts'])$('md-'+name).hidden=name!==managerTab;
  document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab===managerTab)));
  refreshManager();
 }));
@@ -416,8 +416,8 @@ function sheetLine(s){return s.payload?.cloud_line||'Unassigned';}
 async function deleteManagerSheet(item){
  if(role!=='manager'||!item?.id)return;
  const label=[item.sheet_date||'Undated',sheetArea(item),sheetLine(item),item.payload?.cloud_username||managerName(item.owner_id)].join(' · ');
- if(!confirm('Permanently delete this SIC sheet?\\n\\n'+label+'\\n\\nThis cannot be undone. Export a backup first if needed.'))return;
- const typed=prompt('To confirm permanent deletion, type DELETE');
+ if(!confirm('Move this SIC sheet to the manager archive?\\n\\n'+label+'\\n\\nManagers can restore it later.'))return;
+ const typed=prompt('To confirm moving this sheet to the archive, type DELETE');
  if(typed!=='DELETE'){$('md-status').textContent='Deletion cancelled.';return;}
  $('md-status').textContent='Deleting SIC sheet…';
  const {data,error}=await sb.from('sheets').delete().eq('id',item.id).select('id');
@@ -429,7 +429,27 @@ async function deleteManagerSheet(item){
  }
  await listSheets();
  await refreshManager();
- $('md-status').textContent='SIC sheet permanently deleted.';
+ $('md-status').textContent='SIC sheet archived. Managers can restore it from Deleted sheets.';
+}
+async function drawManagerArchive(){
+ const root=$('md-archive-list');if(!root)return;
+ root.replaceChildren(mdEl('p','Loading deleted sheets…'));
+ const {data,error}=await sb.from('sic_sheet_archive').select('id,sheet_snapshot,deleted_at,deleted_by').order('deleted_at',{ascending:false}).limit(100);
+ root.replaceChildren();
+ if(error){root.append(mdEl('p','Archive unavailable: '+errText(error)));return;}
+ if(!data?.length){root.append(mdEl('p','No deleted SIC sheets.'));return;}
+ const rows=data.map(item=>{
+  const snap=item.sheet_snapshot||{},payload=snap.payload||{};
+  const restore=managerButton('Restore',async()=>{
+   if(role!=='manager'||!confirm('Restore this deleted SIC sheet?'))return;
+   restore.disabled=true;
+   const {data:ok,error:restoreError}=await sb.rpc('restore_archived_sic_sheet',{p_sheet_id:item.id});
+   if(restoreError||!ok){restore.disabled=false;$('md-status').textContent='Restore failed: '+(restoreError?errText(restoreError):'Record not found');return;}
+   await listSheets();await refreshManager();$('md-status').textContent='SIC sheet restored.';
+  });
+  return [snap.sheet_date||'Undated',payload.cloud_area||'Unassigned',payload.cloud_line||'Unassigned',managerName(snap.owner_id),new Date(item.deleted_at).toLocaleString('en-GB'),restore];
+ });
+ root.append(managerTable(['Date','Deli','Line','Owner','Deleted','Action'],rows));
 }
 function drawManagerOverview(area=null,line=null){
  managerArea=area;managerLine=line;
@@ -608,6 +628,7 @@ async function refreshManager(){
   if(managerTab!=='overview')setManagerSubpage(true);
   if(managerTab==='insights')drawManagerInsights();
   if(managerTab==='staff')drawManagerStaff();
+  if(managerTab==='archive')await drawManagerArchive();
   if(managerTab==='audit')await drawManagerAudit();
   if(managerTab==='accounts')await drawManagerAccounts();
   $('md-status').textContent='Last refreshed '+new Date().toLocaleTimeString('en-GB');
