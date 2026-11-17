@@ -6,11 +6,48 @@ let user=null,role=null,current=null,timer=null,loading=false;
 const status=message=>{$('status').textContent=message;$('public-status').textContent=message;};
 const dateFmt=value=>{const digits=String(value).replace(/\D/g,'').slice(0,8);return [digits.slice(0,2),digits.slice(2,4),digits.slice(4,8)].filter(Boolean).join('/');};
 function validDate(v){if(!/^\d{2}\/\d{2}\/\d{4}$/.test(v))return false;const [d,m,y]=v.split('/').map(Number);const dt=new Date(y,m-1,d);return dt.getFullYear()===y&&dt.getMonth()===m-1&&dt.getDate()===d;}
-function fields(){const result={};document.querySelectorAll('[data-field],[data-extra]').forEach(el=>result[el.dataset.field||el.dataset.extra]=el.value);return result;}
-function collect(){
- const payload={...fields(),shift:$('shift').value,sheet:$('sheet-no').value,sheetOf:$('sheet-of').value};
- return {production_date:$('pack-date').value,deli:$('deli').value,line:$('line').value.trim(),r_code:$('r-code').value.trim().toUpperCase().replace(/\s/g,''),total_trays:$('total-trays').value===''?null:Number($('total-trays').value),burst_packs:$('burst-packs').value===''?null:Number($('burst-packs').value),payload};
+const columns=["lineCheck","rCode","depotStart","checkTime","useBy","printQuality","upcTray","upcLabel","upcMatch","sleeves","seal","labelDetail","operatorInitials","chargeInitials","totalWaste","totalTrays","unlabelled","overPacks","burstPacks","rejectPacks","floorWaste","operatorChecks","chargeChecks"];
+const checks=new Set(['printQuality','upcMatch','seal','operatorChecks','chargeChecks']);
+const numbers=new Set(['sleeves','totalWaste','totalTrays','unlabelled','overPacks','burstPacks','rejectPacks','floorWaste']);
+const shaded=new Set(['lineCheck','checkTime','printQuality','seal','chargeInitials','operatorChecks','chargeChecks']);
+let draftRows=[];
+function rowData(){
+ return [...$('rows').querySelectorAll('tr')].map(tr=>Object.fromEntries([...tr.querySelectorAll('[data-col]')].map(el=>[el.dataset.col,el.value])));
 }
+function addRow(data={}){
+ const tr=document.createElement('tr');
+ for(const key of columns){
+  const td=document.createElement('td');
+  if(shaded.has(key))td.classList.add('shaded');
+  let el;
+  if(checks.has(key)){
+   el=document.createElement('select');
+   for(const value of ['', '✓','X','N/A'])el.add(new Option(value||'—',value));
+  }else{
+   el=document.createElement('input');
+   el.type=numbers.has(key)?'number':key==='checkTime'?'time':'text';
+   if(numbers.has(key)){el.min='0';el.step='1';el.inputMode='numeric';}
+   if(key==='useBy'){el.placeholder='DD/MM/YYYY';el.inputMode='numeric';el.maxLength=10;}
+   if(key==='rCode')el.placeholder='R####';
+  }
+  el.dataset.col=key;el.value=data[key]??'';
+  if(key==='useBy')el.addEventListener('input',()=>{el.value=dateFmt(el.value);});
+  td.append(el);tr.append(td);
+ }
+ const td=document.createElement('td');td.className='remove-cell no-print';
+ const remove=document.createElement('button');remove.type='button';remove.className='remove-row';remove.textContent='×';remove.setAttribute('aria-label','Remove this product row');
+ remove.addEventListener('click',()=>{if($('rows').children.length<=1){status('Keep at least one row.');return;}tr.remove();scheduleSave();});
+ td.append(remove);tr.append(td);$('rows').append(tr);
+}
+function fields(){const result={};document.querySelectorAll('[data-extra]').forEach(el=>result[el.dataset.extra]=el.value);return result;}
+function collect(){
+ const rows=rowData().filter(row=>Object.values(row).some(v=>String(v).trim()));
+ const payload={...fields(),rows,shift:$('shift').value,sheet:$('sheet-no').value,sheetOf:$('sheet-of').value};
+ const first=rows.find(row=>row.rCode)||{};
+ const total=key=>rows.reduce((sum,row)=>sum+(Number(row[key])||0),0);
+ return {production_date:$('pack-date').value,deli:$('deli').value,line:$('line').value.trim(),r_code:String(first.rCode||'').trim().toUpperCase().replace(/\s/g,''),total_trays:total('totalTrays'),burst_packs:total('burstPacks'),payload};
+}
+function scheduleSave(){if(!current||loading||!role)return;clearTimeout(timer);timer=setTimeout(save,1600);}
 function valid(row){
  if(!validDate(row.production_date))return 'Enter a valid pack date (DD/MM/YYYY).';
  if(!row.deli||!row.line)return 'Choose a Deli and Line.';
@@ -33,8 +70,10 @@ function show(row){
  loading=true;current=row;
  $('pack-date').value=row.production_date;$('deli').value=row.deli;$('line').value=row.line;
  const p=row.payload||{};
- document.querySelectorAll('[data-field],[data-extra]').forEach(el=>{el.value=p[el.dataset.field||el.dataset.extra]??'';});
- $('r-code').value=row.r_code;$('total-trays').value=row.total_trays??'';$('burst-packs').value=row.burst_packs??'';
+ document.querySelectorAll('[data-extra]').forEach(el=>{el.value=p[el.dataset.extra]??'';});
+ $('rows').replaceChildren();
+ if(Array.isArray(p.rows)&&p.rows.length){for(const item of p.rows)addRow(item);}
+ else addRow({rCode:row.r_code,totalTrays:row.total_trays,burstPacks:row.burst_packs,...p});
  $('shift').value=p.shift||'';$('sheet-no').value=p.sheet||'';$('sheet-of').value=p.sheetOf||'';
  $('saved').value=row.id;loading=false;
  $('delete').disabled=!(row.owner_id===user?.id||role==='manager');
@@ -56,10 +95,17 @@ async function save(){
    return;
   }
   current=result.data;await list();
-  status('Saved to cloud · '+row.r_code+' is available for the matching SIC Sheet.');
+  status('Saved verification sheet to cloud · '+row.r_code+'.');
  }finally{$('save').disabled=false;}
 }
-function reset(){loading=true;current=null;$('delete').disabled=true;document.querySelectorAll('#work input,#work textarea').forEach(el=>el.value='');document.querySelectorAll('#work select').forEach(el=>el.value='');$('saved').value='';loading=false;status('New product entry ready.');}
+function reset(){
+ loading=true;current=null;$('delete').disabled=true;
+ document.querySelectorAll('#work input,#work textarea').forEach(el=>el.value='');
+ document.querySelectorAll('#work select').forEach(el=>el.value='');
+ $('rows').replaceChildren();for(let i=0;i<8;i++)addRow();
+ $('sheet-no').value='1';$('sheet-of').value='1';$('saved').value='';
+ loading=false;status('New verification sheet ready.');
+}
 let accountGeneration=0;
 async function account(){
  const generation=++accountGeneration;
@@ -85,7 +131,7 @@ async function account(){
  }
  $('login-section').hidden=!!role;$('work').hidden=!role;$('logout').hidden=!role;
  $('identity').textContent=role?user.email.split('@')[0]+' · '+role:'';
- $('sic-link').hidden=true;
+ $('sic-link').hidden=role==='operator';
  if(role){await list();if(generation!==accountGeneration)return;status('Signed in · Final Product Sheet ready.');}
  else status('Sign in with an active staff account.');
 }
@@ -138,7 +184,7 @@ $('saved').addEventListener('change',async()=>{
  if(error)status('Cannot load entry: '+error.message);else show(data);
 });
 $('pack-date').addEventListener('input',()=>{$('pack-date').value=dateFmt($('pack-date').value);});
-document.querySelectorAll('[data-field="useBy"]').forEach(el=>el.addEventListener('input',()=>{el.value=dateFmt(el.value);}));
+
 document.querySelectorAll('#work input,#work select,#work textarea').forEach(el=>el.addEventListener('change',()=>{
  if(!current||loading||!role)return;
  clearTimeout(timer);timer=setTimeout(save,1400);
