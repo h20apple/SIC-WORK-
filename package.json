@@ -1,0 +1,11 @@
+{
+  "name": "sic-work-tests",
+  "private": true,
+  "scripts": {
+    "test": "node --test tests/*.test.cjs",
+    "test:browser": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.0"
+  }
+}
