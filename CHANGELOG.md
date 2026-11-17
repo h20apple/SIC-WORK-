@@ -1,3 +1,10 @@
+## 17 November 2026 — Manager dashboard SIC + Final Product per line
+- Manager dashboard Deli 1–3 / Line 1–4 buttons now display independent SIC and Final Product saved counts.
+- Selecting a line shows the matching Final Product records and SIC records in separate tables.
+- Final Product records have direct links opening the exact saved record by ID; manager access is still checked by Supabase RLS.
+- Line names are normalized for matching (`1` and `Line 1`); different deli/line records remain separated.
+- Both modified JavaScript files passed syntax checks. End-to-end browser testing and authenticated multi-user testing still required.
+
 ## 17 November 2026 — Exact Deli and Line Final Product → SIC matching
 - SIC now displays saved operator Final Product checks only when **Deli + Line + pack date** match exactly (line labels normalized, e.g. `1` and `Line 1`).
 - A Charge Hand may fill a blank SIC R-code row from a matching operator record; existing SIC entries are never overwritten.
