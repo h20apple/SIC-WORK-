@@ -2,6 +2,13 @@
 
 Updated: 17 November 2026. This is a product change log, **not** a substitute for the database audit trail. Dates before this entry are approximate unless backed by a linked commit.
 
+## 17 November 2026 — New interactive M&S Final Product verification sheet
+- Replaced temporary page with a Bakkavor Salads Bo'ness CCP9 **Final Product Label Verification Checks (M&S)** paper-style interactive form based on the uploaded photograph.
+- Added multiple editable product/check rows, ✓ / X / N/A controls, UK date entry, signatures, label/barcode failsafe fields, pack totals, row add/remove, saved sheet selector, Supabase cloud save, print/PDF A4 landscape and mobile horizontal scrolling.
+- Restored Operator default routing to Final Product and the SIC toolbar link for Charge Hands/Managers.
+- Existing final_product_checks database rows were not deleted. New sheets store all grid rows within the record payload; legacy single-product rows can still be opened.
+- **Needs site review**: some narrow printed headings are difficult to read from the photo; verify each column and exact procedure against the controlled paper original before operational use. Cloud save and printing also require live device tests.
+
 ## 17 November 2026 — Final Product Sheet temporarily paused
 - Removed the Final Product Sheet navigation link from SIC while a replacement is prepared.
 - The old Final Product URL now displays a temporary-unavailable page instead of the old form.
