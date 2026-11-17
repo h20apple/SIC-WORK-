@@ -2,927 +2,1111 @@
   "title": "Products",
   "status": "draft_pending_verification",
   "source": "Production photos 10 November 2026",
-  "note": "Transcribed visually; check R-codes, UPCs and quantities against original sheets before use. sample_amount deliberately null because not reliably shown. Ocado kept separate. Duplicate R-codes may exist across groups.",
+  "note": "Historical photo import. AU codes preserved in au_code; UPC values in this file are intentionally null. Live Supabase products table contains the separately transcribed numeric UPCs; it is authoritative. All entries require manager verification.",
   "products": [
     {
       "deli": "Deli 1",
       "r_code": "R5736",
       "name": "MS Cafe Naked Slaw 6s",
-      "upc": "AU00448",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00448",
+      "verified": false
     },
     {
       "deli": "Deli 1",
       "r_code": "R5509",
       "name": "MS Tuna & Sweetcorn Pasta Bowl",
-      "upc": "AU00375",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00375",
+      "verified": false
     },
     {
       "deli": "Deli 1",
       "r_code": "R5483",
       "name": "MS Honey Roast Salmon Pasta",
-      "upc": "AU00360",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00360",
+      "verified": false
     },
     {
       "deli": "Deli 1",
       "r_code": "R5364",
       "name": "MS Smoked Salmon & Potato Salad",
-      "upc": "AU00200",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00200",
+      "verified": false
     },
     {
       "deli": "Deli 1",
       "r_code": "R5673",
       "name": "MS Beetroot & Feta 23 4s",
-      "upc": "AU00430",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00430",
+      "verified": false
     },
     {
       "deli": "Deli 1",
       "r_code": "R5484",
       "name": "MS Pesto Chicken Pasta",
-      "upc": "AU00361",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00361",
+      "verified": false
     },
     {
       "deli": "Deli 1",
       "r_code": "R5746",
       "name": "MS ND Chipotle Peppers & Jalapeno Houmous",
-      "upc": "AU00455",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00455",
+      "verified": false
     },
     {
       "deli": "Deli 1",
       "r_code": "R5482",
       "name": "MS King Prawn Tomato & Basil Pasta",
-      "upc": "AU00359",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00359",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5534",
       "name": "MS Chicken Tomato Basil Pasta Salad (Large)",
-      "upc": "AU00358",
+      "upc": null,
       "packs_per_tray": 12,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00358",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5474",
       "name": "MS Chicken Tomato Basil Pasta Salad (Large)",
-      "upc": "AU00358",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00358",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5739",
       "name": "MS Honey & Mustard Chicken P Bowl",
-      "upc": "AU00192",
+      "upc": null,
       "packs_per_tray": 12,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00192",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5741",
       "name": "MS Honey & Mustard Chicken P Bowl ROI",
-      "upc": "AU00192",
+      "upc": null,
       "packs_per_tray": 12,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00192",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5533",
       "name": "MS Chicken Bacon Sweetcorn Pasta Salad (Large)",
-      "upc": "AU00377",
+      "upc": null,
       "packs_per_tray": 12,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00377",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5738",
       "name": "MS Chicken Bacon Sweetcorn Pasta Salad",
-      "upc": "AU00377",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00377",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5485",
       "name": "MS Feta & Sunblush Tomato Pasta Large",
-      "upc": "AU00362",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00362",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5807",
       "name": "MS Edamame and Butterbean Crush",
-      "upc": "AU00431",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00431",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5706",
       "name": "MS Creamy Greek Dip",
-      "upc": "AU00432",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00432",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5770",
       "name": "MS Green Pesto",
-      "upc": "AU00452",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00452",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5679",
       "name": "Labneh Yoghurt Dip 170g",
-      "upc": "AU00397",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00397",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5579",
       "name": "MS Spalding GG EPO",
-      "upc": "AU00398",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00398",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5466",
       "name": "Buffalo Chicken Dip 6x170g",
-      "upc": "AU00352",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00352",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5677",
       "name": "Collection Tzatziki 170g",
-      "upc": "AU00403",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00403",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5757",
       "name": "MS Roasted Red Pepper & Chilli Pesto",
-      "upc": "AU00453",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00453",
+      "verified": false
     },
     {
       "deli": "Deli 2",
       "r_code": "R5678",
       "name": "Collections Ajvar Dip 170g",
-      "upc": "AU00404",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00404",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5558",
       "name": "MS Goats Cheese & Lentil Salad",
-      "upc": "AU00385",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00385",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5818",
       "name": "Roasted Butternut & Goats Cheese",
-      "upc": "AU00385",
+      "upc": null,
       "packs_per_tray": 12,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00385",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5764",
       "name": "MS Super Wholegrain Harissa Carrot",
-      "upc": "AU00418",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00418",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5814",
       "name": "Orzo & Slow Roasted Tomato",
-      "upc": "AU00171",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00171",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5815",
       "name": "Orzo & Slow Roasted Tomato",
-      "upc": "AU00171",
+      "upc": null,
       "packs_per_tray": 16,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00171",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5783",
       "name": "MS Garlic Baby Potatoes",
-      "upc": "AU00454",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00454",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5602",
       "name": "MS Buttery Herb Baby Potatoes",
-      "upc": "AU00407",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00407",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5572",
       "name": "MS Roast Veg Couscous",
-      "upc": "AU00391",
+      "upc": null,
       "packs_per_tray": 12,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00391",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5793",
       "name": "Roasted Veg Couscous",
-      "upc": "AU00391",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00391",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R4923",
       "name": "MS Moroccan Style Couscous",
-      "upc": "AU00167",
+      "upc": null,
       "packs_per_tray": 12,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00167",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5609",
       "name": "MS Moroccan Style Couscous ROI",
-      "upc": "AU00167",
+      "upc": null,
       "packs_per_tray": 12,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00167",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5613",
       "name": "MS Large Moroccan Couscous",
-      "upc": "AU00172",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00172",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5725",
       "name": "MS Roasted Pepper & Whipped Pecorino",
-      "upc": "AU00439",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00439",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5781",
       "name": "MS Bountiful Beans",
-      "upc": "AU00456",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00456",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5782",
       "name": "MS Rainbow Rice",
-      "upc": "AU00457",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00457",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5607",
       "name": "MS Pesto & Slow Roasted Tomatoes Pasta Bowl",
-      "upc": "AU00354",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00354",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R4938",
       "name": "MS Pasta Spinach & Pine",
-      "upc": "AU00179",
+      "upc": null,
       "packs_per_tray": 16,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00179",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5794",
       "name": "Italian Pasta Spinach Pine Nut",
-      "upc": "AU00179",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00179",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5795",
       "name": "Italian Pasta Spinach Pine Nut (ROI)",
-      "upc": "AU00179",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00179",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5611",
       "name": "MS Large Italian Pasta Spinach PN",
-      "upc": "AU00180",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00180",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5612",
       "name": "MS Large Italian Pasta Spinach PN ROI",
-      "upc": "AU00180",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00180",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5812",
       "name": "4 Bean Salad",
-      "upc": "AU00390",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00390",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5813",
       "name": "4 Bean Salad",
-      "upc": "AU00390",
+      "upc": null,
       "packs_per_tray": 12,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00390",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5573",
       "name": "MS Beetroot Carrot & Whipped Goats Cheese",
-      "upc": "AU00392",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00392",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5675",
       "name": "MS Asian Edamame",
-      "upc": "AU00400",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00400",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5683",
       "name": "MS British Potato Pea & Mint Salad",
-      "upc": "AU00182",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00182",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5648",
       "name": "MS Avocado Kale & Grains",
-      "upc": "AU00162",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00162",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5553",
       "name": "MS Tabbouleh Salad",
-      "upc": "AU00383",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00383",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5459",
       "name": "MS Greek Salad 8s",
-      "upc": "AU00168",
+      "upc": null,
       "packs_per_tray": 8,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00168",
+      "verified": false
     },
     {
       "deli": "Deli 3",
       "r_code": "R5460",
       "name": "MS Greek Salad 4s",
-      "upc": "AU00168",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00168",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5044",
       "name": "OC Orzo & Roasted Tomatoes",
-      "upc": "AU00171",
+      "upc": null,
       "packs_per_tray": 18,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00171",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5755",
       "name": "OC Garlic Baby Potatoes",
-      "upc": "AU00454",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00454",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5603",
       "name": "OC Buttery Herb Baby Potatoes",
-      "upc": "AU00407",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00407",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5532",
       "name": "OC Tuna Sweetcorn Pasta Salad (Large)",
-      "upc": "AU00375",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00375",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5538",
       "name": "OC Honey Roast Salmon Pasta Salad (Small)",
-      "upc": "AU00360",
+      "upc": null,
       "packs_per_tray": 10,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00360",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5696",
       "name": "OC Creamy Greek Dip",
-      "upc": "AU00412",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00412",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5747",
       "name": "OC Roast Butternut Goats Cheese",
-      "upc": "AU00385",
+      "upc": null,
       "packs_per_tray": 12,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00385",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5594",
       "name": "OC EPO Roast Veg Couscous",
-      "upc": "AU00391",
+      "upc": null,
       "packs_per_tray": 18,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00391",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5780",
       "name": "OC Green Pesto",
-      "upc": "AU00452",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00452",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5586",
       "name": "OC Labneh Yoghurt Dip with a herb dressing",
-      "upc": "AU00397",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00397",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5587",
       "name": "OC Spalding GG EPD",
-      "upc": "AU00398",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00398",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5467",
       "name": "OC Buffalo Chicken Dip",
-      "upc": "AU00352",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00352",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5053",
       "name": "OC Moroccan Style Fruity Couscous",
-      "upc": "AU00167",
+      "upc": null,
       "packs_per_tray": 18,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00167",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5514",
       "name": "OC Large Moroccan Style Fruity Couscous",
-      "upc": "AU00172",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00172",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5759",
       "name": "OC Roasted Red Pepper & Chilli Pesto",
-      "upc": "AU00453",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00453",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5592",
       "name": "OC Collection Tzatziki 170g",
-      "upc": "AU00403",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00403",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5728",
       "name": "OC Roasted Pepper & Whipped Pecorino",
-      "upc": "AU00439",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00439",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5752",
       "name": "OC Bountiful Beans",
-      "upc": "AU00456",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00456",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5783",
       "name": "OC Rainbow Rice",
-      "upc": "AU00457",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00457",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5425",
       "name": "OC Italian Pasta & Spinach Salad (Large Pack)",
-      "upc": "AU00180",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00180",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5164",
       "name": "OC Pasta Spinach & Pine",
-      "upc": "AU00179",
+      "upc": null,
       "packs_per_tray": 18,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00179",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5708",
       "name": "OC Small Tabbouleh",
-      "upc": "AU00383",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00383",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5481",
       "name": "OC Avocado Kale & Grains",
-      "upc": "AU00162",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00162",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5707",
       "name": "OC British Potato Pea & Mint",
-      "upc": "AU00182",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00182",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5600",
       "name": "OC EPO 4 Bean Salad",
-      "upc": "AU00390",
+      "upc": null,
       "packs_per_tray": 16,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00390",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5690",
       "name": "OC Pesto & Slow Roasted Tomatoes Pasta Bowl",
-      "upc": "AU00310",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00310",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5537",
       "name": "OC King Prawn Tomato & Basil Pasta Salad (Large)",
-      "upc": "AU00359",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00359",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5541",
       "name": "OC Honey & Mustard Pasta Salad (Large)",
-      "upc": "AU00374",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00374",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5661",
       "name": "OC Feta & Beetroot",
-      "upc": "AU00430",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00430",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5515",
       "name": "OC Chicken Tomato Basil Pasta Salad (Large)",
-      "upc": "AU00358",
+      "upc": null,
       "packs_per_tray": 8,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00358",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5543",
       "name": "OC Chicken Bacon Sweetcorn Pasta Salad (Large)",
-      "upc": "AU00377",
+      "upc": null,
       "packs_per_tray": 8,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00377",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5539",
       "name": "OC Feta Cheese & Roasted Tomato Pasta Salad (Large)",
-      "upc": "AU00362",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00362",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5424",
       "name": "OC Greek Salad",
-      "upc": "AU00168",
+      "upc": null,
       "packs_per_tray": 8,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00168",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5594",
       "name": "OC Pesto Chicken Pasta Salad with Sundried Tomatoes",
-      "upc": "AU00361",
+      "upc": null,
       "packs_per_tray": 4,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00361",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5434",
       "name": "OC Hot Smoked Salmon & New Potato Salad",
-      "upc": "AU00200",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00200",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5599",
       "name": "OC Herby Feta Dip",
-      "upc": "AU00154",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00154",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5697",
       "name": "OC Edamame and Butterbean Crush",
-      "upc": "AU00431",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00431",
+      "verified": false
     },
     {
       "deli": "Ocado",
       "r_code": "R5593",
       "name": "OC Collections Ajvar Dip 170g",
-      "upc": "AU00404",
+      "upc": null,
       "packs_per_tray": 6,
       "sample_amount": null,
       "confidence": "photo_review",
-      "source_date": "2026-11-10"
+      "source_date": "2026-11-10",
+      "au_code": "AU00404",
+      "verified": false
     }
   ]
 }
