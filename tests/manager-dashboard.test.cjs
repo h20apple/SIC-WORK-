@@ -41,3 +41,11 @@ test('deleted SIC sheets can be restored by managers',()=>{
  assert.match(js,/restore_archived_sic_sheet/);
  assert.match(js,/if\(managerTab==='archive'\)/);
 });
+
+test('offline warning and reconnect cloud retry are wired',()=>{
+ assert.match(html,/id="cloud-network-notice"/);
+ assert.match(js,/function updateNetworkNotice\(/);
+ assert.match(js,/addEventListener\('offline'/);
+ assert.match(js,/addEventListener\('online'/);
+ assert.match(js,/setTimeout\(\(\)=>saveCloud\(\),800\)/);
+});
