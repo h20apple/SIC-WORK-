@@ -433,7 +433,7 @@ function setManagerSubpage(open){
  $('md-areas').hidden=open;
  $('md-tabs').hidden=!!(managerArea&&managerLine);
 }
-$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','insights','staff','archive','audit','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
+$('md-back').addEventListener('click',()=>{managerArea=null;managerLine=null;managerTab='overview';for(const name of ['overview','insights','staff','archive','audit','products','accounts'])$('md-'+name).hidden=name!=='overview';document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab==='overview')));setManagerSubpage(false);drawManagerOverview();});
 function managerWelcome(){
  $('manager-choice').hidden=true;
  managerSwitch('dashboard');
@@ -446,7 +446,7 @@ document.querySelectorAll('[data-md-tab]').forEach(btn=>btn.addEventListener('cl
  if(btn.dataset.mdTab==='accounts'&&!isRossAdmin())return;
  managerTab=btn.dataset.mdTab;
  setManagerSubpage(true);
- for(const name of ['overview','insights','staff','archive','audit','accounts'])$('md-'+name).hidden=name!==managerTab;
+ for(const name of ['overview','insights','staff','archive','audit','products','accounts'])$('md-'+name).hidden=name!==managerTab;
  document.querySelectorAll('[data-md-tab]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mdTab===managerTab)));
  refreshManager();
 }));
@@ -681,6 +681,7 @@ async function refreshManager(){
   if(managerTab==='archive')await drawManagerArchive();
   if(managerTab==='audit')await drawManagerAudit();
   if(managerTab==='accounts')await drawManagerAccounts();
+  if(managerTab==='products')window.dispatchEvent(new Event('sic-products-open'));
   $('md-status').textContent='Last refreshed '+new Date().toLocaleTimeString('en-GB');
  }catch(e){$('md-status').textContent='Dashboard error: '+errText(e);}
 }
